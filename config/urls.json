@@ -11,6 +11,7 @@
   "claude":       {"url": "https://claude.ai",                     "title": "Claude"},
   "gmail":        {"url": "https://mail.google.com",               "title": "Gmail"},
   "calendar":     {"url": "https://calendar.google.com",           "title": "Google Calendar"},
+  "kalendar":     {"url": "https://calendar.google.com",           "title": "Google Calendar"},
   "drive":        {"url": "https://drive.google.com",              "title": "Google Drive"},
   "reddit":       {"url": "https://www.reddit.com",                "title": "Reddit"},
   "twitch":       {"url": "https://www.twitch.tv",                 "title": "Twitch"},
@@ -19,7 +20,6 @@
   "gemini":       {"url": "https://gemini.google.com",             "title": "Gemini"},
   "amazon":       {"url": "https://www.amazon.com",                "title": "Amazon"},
   "twitter":      {"url": "https://www.x.com",                     "title": "X"},
-  "GoStudent":    {"url": "https://gostudent.org/chat/lessons/private",    "title": "GoStudent"},
-  "moodle":       {"url": "https://moodle.univie.ac.at/",          "title": "Moodle"},
-  "Calendar":     {"url": "https://calendar.google.com",           "title": "Google Calendar"}
+  "gostudent":    {"url": "https://gostudent.org/chat/lessons/private",    "title": "GoStudent"},
+  "moodle":       {"url": "https://moodle.univie.ac.at/",          "title": "Moodle"}
 }

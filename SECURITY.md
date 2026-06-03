@@ -9,7 +9,7 @@ This assistant controls local desktop actions such as opening apps, opening file
 - Do not expose port `8000` to a network or the internet.
 - Only use trusted STT and LLM endpoints. Voice commands, file names, clipboard text and note content may be sent to those services depending on the command.
 - Review OAuth scopes before connecting Spotify or Google Calendar.
-- Do not commit local data under `data/` or token files under `~/.config/lokaler-assistent/`.
+- Do not commit local data under `data/` or token files under `~/.config/kompanion/`.
 
 ## Local API
 
@@ -33,7 +33,7 @@ Avoid using `*` for CORS because a malicious webpage could otherwise try to driv
 Spotify and Google Calendar tokens are stored under:
 
 ```text
-~/.config/lokaler-assistent/
+~/.config/kompanion/
 ```
 
 The application writes token directories as `0700` and token files as `0600` where the platform allows it.

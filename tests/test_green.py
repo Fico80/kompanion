@@ -104,6 +104,15 @@ class TestConfigFileCaching(unittest.TestCase):
             result = cfg._load_apps()
         self.assertIn("firefox", result)
 
+    def test_load_apps_normalizes_alias_keys_to_lowercase(self):
+        import shared.config as cfg
+        path = self._make_json_file({"Anti Gravity": {"cmd": "antigravity", "name": "Antigravity"}})
+        with patch.object(cfg, "APPS_FILE", path):
+            result = cfg._load_apps()
+        self.assertIn("anti gravity", result)
+        self.assertNotIn("Anti Gravity", result)
+        self.assertEqual(result["anti gravity"]["name"], "Antigravity")
+
     def test_load_apps_returns_cached_on_repeated_call(self):
         """Second call with no file change must not re-open the file."""
         import shared.config as cfg
@@ -162,6 +171,15 @@ class TestConfigFileCaching(unittest.TestCase):
             cfg._load_urls()
 
         self.assertEqual(len(open_calls), 1, "URLs file must be read only once per mtime epoch")
+
+    def test_load_urls_normalizes_alias_keys_to_lowercase(self):
+        import shared.config as cfg
+        path = self._make_json_file({"GoStudent": {"url": "https://example.com", "title": "GoStudent"}})
+        with patch.object(cfg, "URLS_FILE", path):
+            result = cfg._load_urls()
+        self.assertIn("gostudent", result)
+        self.assertNotIn("GoStudent", result)
+        self.assertEqual(result["gostudent"]["title"], "GoStudent")
 
     def test_load_apps_returns_stale_cache_on_read_error(self):
         """If the file is temporarily unreadable, the last known cache must be returned."""

@@ -7,33 +7,23 @@ _NOTE_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 
+# Broad trigger: just detect intent, LLM extracts note name + content
 _APPEND_TRIGGER_RE = re.compile(
-    r"^(?:ergänze(?:\s+(?:die\s+)?notiz)?|füge(?:\s+(?:zur|zu(?:\s+der)?)\s+notiz)?\s+hinzu"
-    r"|add\s+to\s+(?:note|my\s+note)|append\s+to\s+(?:note|my\s+note))\s+(.+)$",
+    r"^(?:ergänze|füge\b.+?\bhinzu|add\s+to\s+(?:my\s+)?note|append\s+to\s+(?:my\s+)?note)\b",
     re.IGNORECASE | re.DOTALL,
 )
 
 
 def parse_note(text: str) -> dict | None:
-    m = _APPEND_TRIGGER_RE.match(text.strip())
-    if m:
-        rest = re.sub(r"^[,\s]+", "", m.group(1).strip())
-        if ":" in rest:
-            query, _, addition = rest.partition(":")
-            note_query = query.strip()
-            target = addition.strip()
-        else:
-            note_query = ""   # executor will use LLM to extract
-            target = rest
-        if target:
-            return {
-                "action": "append_note",
-                "note_query": note_query,
-                "target": target,
-                "app_name": "Note",
-                "window_title": None, "window_class": None, "flatpak_id": None,
-                "layout": None, "desktop": None, "monitor": None,
-            }
+    if _APPEND_TRIGGER_RE.search(text.strip()):
+        return {
+            "action": "append_note",
+            "note_query": "",   # LLM extracts note name + content in executor
+            "target": text.strip(),
+            "app_name": "Note",
+            "window_title": None, "window_class": None, "flatpak_id": None,
+            "layout": None, "desktop": None, "monitor": None,
+        }
     m = _NOTE_RE.match(text.strip())
     if not m:
         return None

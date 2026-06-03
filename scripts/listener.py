@@ -40,18 +40,16 @@ def find_keyboards():
         try:
             dev = InputDevice(path)
             caps = dev.capabilities()
-            if ecodes.EV_KEY in caps and ecodes.KEY_RIGHTCTRL in caps[ecodes.EV_KEY]:
+            if ecodes.EV_KEY in caps and HOTKEY in caps[ecodes.EV_KEY]:
                 devices.append(dev)
         except Exception:
             pass
     return devices
 
-_GROQ_STT_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
-
-def transcribe(audio_path, api_key):
+def transcribe(audio_path):
     whisper_url = os.environ.get("WHISPER_BASE_URL", "").rstrip("/")
+    stt_key = os.environ.get("STT_API_KEY", "")
     language = os.environ.get("WHISPER_LANGUAGE", "en")
-    stt_key = os.environ.get("STT_API_KEY", api_key)
 
     if whisper_url:
         is_local = "127.0.0.1" in whisper_url or "localhost" in whisper_url
@@ -65,9 +63,12 @@ def transcribe(audio_path, api_key):
             model = os.environ.get("STT_MODEL", "whisper-large-v3-turbo")
         timeout = 60 if is_local else 15
     else:
-        url = _GROQ_STT_URL
-        headers = {"Authorization": f"Bearer {stt_key}"}
-        model = "whisper-large-v3-turbo"
+        stt_base = os.environ.get("STT_BASE_URL", "").rstrip("/")
+        url = (stt_base + "/audio/transcriptions") if stt_base else ""
+        if not url:
+            return ""
+        headers = {"Authorization": f"Bearer {stt_key}"} if stt_key else {}
+        model = os.environ.get("STT_MODEL", "whisper-large-v3-turbo")
         timeout = 15
 
     with open(audio_path, "rb") as f:
@@ -282,7 +283,7 @@ def _load_piper_voice(model_path: str):
         _piper_cache[model_path] = PiperVoice.load(model_path)
     return _piper_cache[model_path]
 
-def speak(text: str, api_key: str = "", response_lang: str = "en"):
+def speak(text: str, response_lang: str = "en"):
     """Speak text via Piper (local neural TTS). Falls back to espeak-ng."""
     lang = "de" if response_lang == "de" else "en"
     clean = _clean_for_tts(text, response_lang)
@@ -1117,27 +1118,27 @@ class WakeWordThread(QThread):
     session_expired   = pyqtSignal()   # Session timed out, back to wake-word mode.
     error_occurred    = pyqtSignal(str)
 
-    RATE           = 16000
+    DEVICE_RATE    = 48000  # native mic rate — avoids PipeWire resampling artifacts
+    RATE           = 16000  # OWW model input rate
     CHANNELS       = 1
-    # OWW performs best on 80 ms blocks (1280 samples at 16 kHz)
     BLOCK_MS       = 80
-    BLOCK_SAMPLES  = int(RATE * BLOCK_MS / 1000)          # 1280 samples per block
-    # webrtcvad requires 10/20/30 ms sub-frames; we split each 80 ms block
+    BLOCK_SAMPLES  = int(DEVICE_RATE * BLOCK_MS / 1000)   # 3840 samples per block at 48kHz
+    # webrtcvad requires 10/20/30 ms sub-frames; 48kHz is supported
     VAD_FRAME_MS   = 30
-    VAD_FRAME_SAMPLES = int(RATE * VAD_FRAME_MS / 1000)   # 480 samples per VAD frame
+    VAD_FRAME_SAMPLES = int(DEVICE_RATE * VAD_FRAME_MS / 1000)  # 1440 samples per frame
     WW_THRESHOLD   = 0.60
     WAKE_REARM_SECONDS = 1.5  # short guard after ending a session
-    FAILED_WAKE_REARM_SECONDS = 8.0  # longer guard after false wake with no speech
+    FAILED_WAKE_REARM_SECONDS = 2.0  # longer guard after false wake with no speech
     WAKE_CONSECUTIVE_BLOCKS = 2  # 2 x 80 ms above threshold before wake fires
     WAKE_VAD_GRACE_BLOCKS = 6  # accept wake scores only near detected speech
-    SILENCE_BLOCKS   = 50   # 50 x 80 ms, about 4.0 s silence, ends the utterance.
-    NO_SPEECH_BLOCKS = 50   # 50 x 80 ms, 4.0 s silence after wake-word, gives up.
+    SILENCE_BLOCKS   = 25   # 25 x 80 ms = 2.0 s silence, ends the utterance.
+    NO_SPEECH_BLOCKS = 25   # 25 x 80 ms = 2.0 s silence after wake-word, gives up.
     MIN_SPEECH_BLOCKS = 4   # 4 x 80 ms = 320 ms min speech
     ONSET_BLOCKS   = 2      # 2 consecutive speech blocks to start session recording
     PRE_ROLL_BLOCKS = 6     # 6 x 80 ms = 480 ms pre-roll before trigger
-    SESSION_TIMEOUT = 15.0  # seconds after last command execution
+    SESSION_TIMEOUT = 5.0  # seconds after last command execution
     LOCAL_WAIT_SECONDS = 30.0
-    MAX_BLOCKS     = int(RATE / BLOCK_SAMPLES * int(os.environ.get("MAX_RECORD_SECONDS", "300")))  # silence-driven; this is just a safety cap
+    MAX_BLOCKS     = int(1000 / BLOCK_MS * int(os.environ.get("MAX_RECORD_SECONDS", "300")))  # silence-driven; this is just a safety cap
 
     def __init__(self, wake_word: str = "hey_jarvis_v0.1"):
         super().__init__()
@@ -1147,6 +1148,9 @@ class WakeWordThread(QThread):
         self._session_until = 0.0       # timestamp until session mode is active
         self._wake_disabled_until = 0.0
         self.session_timeout = self._read_float_env("WAKE_SESSION_TIMEOUT", self.SESSION_TIMEOUT)
+        _silence_secs = self._read_float_env("WAKE_SILENCE_SECONDS", self.SILENCE_BLOCKS * 0.08)
+        self.silence_blocks = max(5, int(_silence_secs / 0.08))
+        self.no_speech_blocks = self.silence_blocks
         self.local_wait_seconds = self._read_float_env("WAKE_LOCAL_WAIT_SECONDS", self.LOCAL_WAIT_SECONDS)
         self.ww_threshold = self._read_float_env("WAKE_WORD_THRESHOLD", self.WW_THRESHOLD)
         self.failed_wake_rearm_seconds = self._read_float_env(
@@ -1252,10 +1256,10 @@ class WakeWordThread(QThread):
 
         try:
             stream = sd.RawInputStream(
-                samplerate=self.RATE,
+                samplerate=self.DEVICE_RATE,
                 channels=self.CHANNELS,
                 dtype="int16",
-                blocksize=self.BLOCK_SAMPLES,   # 1280 samples = 80 ms (OWW-optimal)
+                blocksize=self.BLOCK_SAMPLES,   # 3840 samples = 80 ms at 48kHz
                 callback=_audio_callback,
             )
             stream.start()
@@ -1304,7 +1308,7 @@ class WakeWordThread(QThread):
                 sub = block[i:i + vad_bytes]
                 if len(sub) == vad_bytes:
                     try:
-                        if vad.is_speech(sub, self.RATE):
+                        if vad.is_speech(sub, self.DEVICE_RATE):
                             is_speech = True
                             break
                     except Exception:
@@ -1330,7 +1334,9 @@ class WakeWordThread(QThread):
                 if not in_session and time.time() >= self._wake_disabled_until:
                     audio_np = np.frombuffer(block, dtype=np.int16)
                     try:
-                        scores = oww.predict(audio_np)
+                        from scipy.signal import resample_poly
+                        audio_16k = resample_poly(audio_np, 1, 3).astype(np.int16)
+                        scores = oww.predict(audio_16k)
                         max_score = max(scores.values(), default=0.0)
                         above_threshold = max_score >= self.ww_threshold
                         speech_gate_open = (not self.wake_require_vad) or recent_speech_cnt > 0
@@ -1394,8 +1400,8 @@ class WakeWordThread(QThread):
                 else:
                     silence_cnt += 1
 
-                ended     = silence_cnt >= self.SILENCE_BLOCKS and speech_cnt >= self.MIN_SPEECH_BLOCKS
-                no_speech = silence_cnt >= self.NO_SPEECH_BLOCKS and speech_cnt < self.MIN_SPEECH_BLOCKS
+                ended     = silence_cnt >= self.silence_blocks and speech_cnt >= self.MIN_SPEECH_BLOCKS
+                no_speech = silence_cnt >= self.no_speech_blocks and speech_cnt < self.MIN_SPEECH_BLOCKS
                 too_long  = len(rec_blocks) >= self.MAX_BLOCKS
 
                 if ended or no_speech or too_long:
@@ -1407,7 +1413,7 @@ class WakeWordThread(QThread):
                         with wave.open(wav_path, "wb") as wf:
                             wf.setnchannels(self.CHANNELS)
                             wf.setsampwidth(2)
-                            wf.setframerate(self.RATE)
+                            wf.setframerate(self.DEVICE_RATE)
                             wf.writeframes(b"".join(rec_blocks))
                         self._busy = True
                         self.audio_ready.emit(wav_path)
@@ -1431,10 +1437,9 @@ class AudioWorker(QThread):
     transcription_done = pyqtSignal(str)
     finished = pyqtSignal(bool, str, str, str, str, dict)  # success, message, transcript, parsed_summary, action, parsed
 
-    def __init__(self, audio_path, api_key, repeat_command_getter=None, last_transcript_getter=None, window_context_getter=None):
+    def __init__(self, audio_path, repeat_command_getter=None, last_transcript_getter=None, window_context_getter=None):
         super().__init__()
         self.audio_path = audio_path
-        self.api_key = api_key
         self.repeat_command_getter = repeat_command_getter
         self.last_transcript_getter = last_transcript_getter
         self.window_context_getter = window_context_getter
@@ -1467,8 +1472,7 @@ class AudioWorker(QThread):
 
     def run(self):
         try:
-            # 1. Transcribe voice audio via Groq Whisper API
-            text = transcribe(self.audio_path, self.api_key)
+            text = transcribe(self.audio_path)
             if not text:
                 self.finished.emit(False, "Nothing understood or recording too short.", "", "", "", {})
                 return
@@ -1536,9 +1540,8 @@ class AudioWorker(QThread):
 # --- Unified Voice Assistant Application Controller ---
 
 class VoiceAssistantApp:
-    def __init__(self, keyboards, api_key, wake_word_mode=False, wake_word="hey_jarvis_v0.1"):
+    def __init__(self, keyboards, wake_word_mode=False, wake_word="hey_jarvis_v0.1"):
         self.keyboards = keyboards
-        self.api_key = api_key
 
         # Cooldown to prevent duplicate triggers from multiple virtual evdev devices
         self.last_trigger_time = 0.0
@@ -1609,7 +1612,6 @@ class VoiceAssistantApp:
             # Dispatch background transcription & execution threads
             self.worker = AudioWorker(
                 self.rec_path,
-                self.api_key,
                 self.get_repeatable_command,
                 self.get_last_user_transcript,
                 self.get_window_context,
@@ -1629,7 +1631,6 @@ class VoiceAssistantApp:
         self.overlay.update_state("processing", "Understanding audio...")
         self.worker = AudioWorker(
             path,
-            self.api_key,
             self.get_repeatable_command,
             self.get_last_user_transcript,
             self.get_window_context,
@@ -1808,16 +1809,16 @@ class VoiceAssistantApp:
 def main():
     import argparse
     load_env()
-    global HUD_STYLE, HUD_POSITION
+    global HUD_STYLE, HUD_POSITION, HOTKEY
     HUD_STYLE = os.environ.get("HUD_STYLE", "kompanion").lower()
     HUD_POSITION = os.environ.get("HUD_POSITION", "bottom-right").lower()
+    _hotkey_name = os.environ.get("HOTKEY_KEY", "KEY_RIGHTCTRL").strip()
+    HOTKEY = getattr(ecodes, _hotkey_name, ecodes.KEY_RIGHTCTRL)
     os.environ["QT_QPA_PLATFORM"] = "xcb"
-    api_key = os.environ.get("GROQ_API_KEY", "")
-
-    stt_key = os.environ.get("STT_API_KEY", api_key)
+    stt_key = os.environ.get("STT_API_KEY", "")
     whisper_url = os.environ.get("WHISPER_BASE_URL", "")
     if not whisper_url and not stt_key:
-        print("Error: no STT configured. Set GROQ_API_KEY, STT_API_KEY or WHISPER_BASE_URL.")
+        print("Error: no STT configured. Set STT_API_KEY or WHISPER_BASE_URL.")
         sys.exit(1)
 
     parser = argparse.ArgumentParser(description="Local Assistant voice listener")
@@ -1833,7 +1834,7 @@ def main():
 
     keyboards = find_keyboards()
     if not keyboards and not wake_word_mode:
-        print("Error: no keyboard with a right Ctrl key found.")
+        print(f"Error: no keyboard with '{_hotkey_name}' found.")
         sys.exit(1)
 
     app = QApplication(sys.argv)
@@ -1847,7 +1848,7 @@ def main():
         print("Right Ctrl starts, stops and runs voice control.")
     print("Press Ctrl+C in the terminal to exit.")
 
-    controller = VoiceAssistantApp(keyboards, api_key,
+    controller = VoiceAssistantApp(keyboards,
                                    wake_word_mode=wake_word_mode,
                                    wake_word=args.wake_word_model)
 

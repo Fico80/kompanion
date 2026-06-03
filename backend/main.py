@@ -25,13 +25,13 @@ def _secure_sensitive_files() -> None:
     files_600 = [
         ENV_FILE,
         MEMORY_DB,
-        Path(os.path.expanduser("~/.config/lokaler-assistent/spotify_tokens.json")),
-        Path(os.path.expanduser("~/.config/lokaler-assistent/google_calendar_tokens.json")),
+        Path(os.path.expanduser("~/.config/kompanion/spotify_tokens.json")),
+        Path(os.path.expanduser("~/.config/kompanion/google_calendar_tokens.json")),
     ]
     # Directories that must be 0o700
     dirs_700 = [
         DATA_DIR,
-        Path(os.path.expanduser("~/.config/lokaler-assistent")),
+        Path(os.path.expanduser("~/.config/kompanion")),
     ]
 
     for path in files_600:
@@ -295,8 +295,8 @@ def _execute_command_locked(req: CommandRequest):
             print(f"[CONFIRM] \"{req.command}\" -> confirmed: {pend.get('action')}")
             mem.log_command(req.command, parsed, result.get("success", False))
             return {"command": req.command, "parsed": parsed, "result": result}
-        # Neither yes nor no. Drop the confirmation and treat this as a fresh command.
-        _pending_yesno = None
+        # Neither yes nor no — keep pending and process as a fresh command.
+        # _pending_yesno is cleared below only if the command succeeds.
 
     # Stage 0b: resolve pending command clarification (append missing parameters)
     if _pending_confirmation:
@@ -383,6 +383,23 @@ def _execute_command_locked(req: CommandRequest):
         if undo:
             undo.setdefault("lang", lang(parsed))
             _last_undo = {"description": parsed.get("app_name", action), "undo_parsed": undo}
+
+    # Clear yes/no state after any successful command
+    if result.get("success") and _pending_yesno:
+        _pending_yesno = None
+
+    # After append_note: ask if user wants to open the note
+    if result.get("_open_on_yes"):
+        _pending_yesno = {
+            "parsed": {
+                "action": "open_path",
+                "target": result["_open_on_yes"],
+                "layout": None, "desktop": None, "monitor": None,
+                "lang": lang(parsed),
+            },
+            "lang": lang(parsed),
+            "expires_at": time.time() + _YESNO_TTL,
+        }
 
     # Store pending selection if executor returned one
     if result.get("pending_selection"):

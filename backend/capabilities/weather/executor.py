@@ -43,7 +43,7 @@ def query_weather(city: str | None, aspect: str | None = None,
     wttr_lang = "de" if response_lang == "de" else "en"
     url = f"https://wttr.in/{location}?format=j1&lang={wttr_lang}"
     try:
-        resp = requests.get(url, timeout=6, headers={"User-Agent": "lokaler-assistent/1.0"})
+        resp = requests.get(url, timeout=6, headers={"User-Agent": "kompanion/1.0"})
         resp.raise_for_status()
         data = resp.json()
 

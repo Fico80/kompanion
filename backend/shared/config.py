@@ -10,6 +10,14 @@ _urls_cache: dict | None = None
 _urls_mtime: float = 0.0
 
 
+def _alias_map(data: dict) -> dict:
+    return {
+        str(k).strip().lower(): v
+        for k, v in data.items()
+        if not str(k).startswith("_") and str(k).strip()
+    }
+
+
 def _load_urls() -> dict:
     global _urls_cache, _urls_mtime
     try:
@@ -18,7 +26,7 @@ def _load_urls() -> dict:
             return _urls_cache
         with open(URLS_FILE) as f:
             data = json.load(f)
-        _urls_cache = {k: v for k, v in data.items() if not k.startswith("_")}
+        _urls_cache = _alias_map(data)
         _urls_mtime = mtime
         return _urls_cache
     except Exception:
@@ -39,8 +47,8 @@ def _load_apps() -> dict:
         for path in app_files:
             with open(str(path)) as f:
                 loaded = json.load(f)
-            data.update({k: v for k, v in loaded.items() if not k.startswith("_")})
-        _apps_cache = {k: v for k, v in data.items() if not k.startswith("_")}
+            data.update(_alias_map(loaded))
+        _apps_cache = _alias_map(data)
         _apps_mtime = mtime
         return _apps_cache
     except Exception:

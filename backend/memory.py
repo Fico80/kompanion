@@ -281,15 +281,19 @@ def record_note(content: str, path: str) -> None:
 
 
 def update_note_embedding(path: str, new_content: str) -> None:
-    """Re-embed and update the existing DB record(s) for path (used when a note is appended to)."""
+    """Update content and re-embed an existing note record (used when a note is appended to)."""
     embedding = _get_embedding(new_content)
-    if not embedding:
-        return
     with _conn() as conn:
-        conn.execute(
-            "UPDATE notes SET embedding = ? WHERE path = ?",
-            (json.dumps(embedding), path),
-        )
+        if embedding:
+            conn.execute(
+                "UPDATE notes SET content = ?, embedding = ? WHERE path = ?",
+                (new_content, json.dumps(embedding), path),
+            )
+        else:
+            conn.execute(
+                "UPDATE notes SET content = ? WHERE path = ?",
+                (new_content, path),
+            )
         conn.commit()
 
 
