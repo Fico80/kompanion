@@ -259,7 +259,7 @@ def _parse_multi_open(text: str) -> dict | None:
         return None
     parsed_parts = []
     for part in parts:
-        r = _parse_regex(part.strip())
+        r = _parse_regex(re.sub(r'[.,!?]+$', '', part.strip()))
         if not r.get("_confident") or r.get("action") not in ("open_app", "open_url", "open_path"):
             return None
         parsed_parts.append(r)

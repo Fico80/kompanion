@@ -15,7 +15,7 @@ SCOPES = " ".join([
     "playlist-read-private",
     "playlist-read-collaborative",
 ])
-TOKEN_FILE = os.path.expanduser("~/.config/lokaler-assistent/spotify_tokens.json")
+TOKEN_FILE = os.path.expanduser("~/.config/kompanion/spotify_tokens.json")
 
 _pending_state: str | None = None
 

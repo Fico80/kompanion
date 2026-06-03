@@ -1,76 +1,50 @@
 # Kompanion
 
-A local-first desktop assistant for KDE Plasma 6 on Wayland. It can control windows, open apps and URLs, search files, manage notes, create calendar events, control audio, adjust monitor brightness, run timers and answer system questions through voice commands or a small web UI.
+A local-first desktop assistant for KDE Plasma 6 on Wayland. Control your desktop through voice commands or a small web UI. Core workflows can run fully offline.
 
-The project is designed for Linux desktop automation rather than general chatbot use. Most commands are handled by deterministic local parsers. An OpenAI-compatible LLM endpoint is only used as a fallback or for text tasks such as summaries, explanations and note queries.
-
-## Current Status
-
-This is a working personal assistant that is being cleaned up for broader use. The main target is currently:
-
-- Fedora Linux
-- KDE Plasma 6
-- Wayland
-- KWin window management through D-Bus
-
-English and German commands are supported for the main workflows. Responses are generated in the detected command language for the most important user-facing actions.
+English and German are supported for the main workflows.
 
 ## Features
 
-- Open apps, folders and URLs by voice.
-- Place new windows left, right, fullscreen, on a specific workspace or on a specific monitor.
-- Move and close existing windows through KWin D-Bus.
-- Understand follow-up window commands such as "move it right", "send it back" and "close it again".
-- Open multiple apps in one command, for example "open Firefox left and Discord right".
-- Control system volume, per-app volume and media playback.
-- Control Spotify through the Spotify Web API.
-- Adjust monitor brightness through `ddcutil` and DDC/CI.
-- Search files and folders by name, type and time range.
-- Dictate Markdown notes into `~/Notes`.
-- Search and summarize saved notes.
-- Link similar notes automatically for Obsidian-style graph workflows.
-- Query Google Calendar and create events by voice.
-- Create timers, tasks and reminders.
-- Ask for system information such as RAM, CPU, disk, battery and top processes.
-- Query weather through `wttr.in`.
-- Save custom URL aliases and command shortcuts without restarting.
-- Use push-to-talk with the right Ctrl key.
-- Optional wake word mode with openWakeWord, VAD and a small PyQt HUD.
-- Fully local AI stack: Piper for TTS, `whisper.cpp` or Ollama Whisper for STT, Ollama or `llama.cpp` for LLM, Ollama embeddings for note search.
+Most features work without an LLM through deterministic local parsers. Features marked with ⚡ use an LLM when configured but degrade gracefully without one.
 
-## Architecture
+**Windows and apps**
+- Open apps, folders and URLs by voice
+- Place new windows left, right, fullscreen, on a specific workspace or monitor
+- Move and close existing windows through KWin D-Bus
+- Follow-up window commands: "move it right", "send it back", "close it again"
+- Open multiple apps in one command: "open Firefox left and Discord right"
+- ⚡ Unknown apps and URLs are resolved via LLM fallback
 
-The assistant is built around a staged intent pipeline:
+**Audio and media**
+- Control system volume, per-app volume and media playback
+- Control Spotify through the Spotify Web API
 
-```text
-voice or web input
--> parser pipeline
--> capability executor
--> desktop action or API call
--> optional spoken response
-```
+**Notes**
+- Dictate Markdown notes saved to `~/Notes`
+- Append to existing notes by voice
+- ⚡ Note formatting and smart filenames (requires LLM)
+- ⚡ Search and summarize saved notes (requires LLM; falls back to substring search)
+- Link similar notes automatically for Obsidian-style graph workflows
 
-Core modules:
+**Tasks and calendar**
+- Create timers, tasks and reminders with due dates
+- ⚡ Query Google Calendar and create events by voice (requires LLM for natural language dates)
 
-```text
-backend/main.py              FastAPI server and interactive state
-backend/parser.py            ordered intent pipeline
-backend/executor.py          action dispatcher
-backend/kwin_client.py       KWin Wayland window control
-backend/memory.py            SQLite history, tasks and notes
-backend/shared/              shared paths, config, i18n and LLM helpers
-backend/capabilities/        feature-specific parsers and executors
-scripts/listener.py          hotkey, wake word, STT, TTS and HUD
-static/                      small web UI
-config/                      user-editable app, URL and shortcut config
-```
+**System**
+- Adjust monitor brightness through `ddcutil` and DDC/CI
+- Search files and folders by name, type and time range
+- Ask for system information: RAM, CPU, disk, battery, top processes
+- Query weather through `wttr.in`
 
-Capabilities are explicit Python modules rather than a dynamic plugin system:
+**Clipboard**
+- ⚡ Translate, summarize, explain or improve clipboard text (requires LLM)
 
-```text
-audio, brightness, calendar, clipboard, notes, search, shortcuts,
-spotify, system, tasks, timer, weather, windows
-```
+**Configuration and shortcuts**
+- Save custom URL aliases and command shortcuts without restarting
+- Push-to-talk with the right Ctrl key
+- Optional wake word mode with openWakeWord, VAD and a small PyQt HUD
+- Fully local AI stack: [Piper](https://github.com/rhasspy/piper) for TTS, `whisper.cpp` or Ollama for STT, Ollama or `llama.cpp` for LLM
 
 ## Requirements
 
@@ -102,9 +76,9 @@ Log out and back in after changing groups.
 
 TTS uses [Piper](https://github.com/rhasspy/piper) for local neural speech. `espeak-ng` is the fallback when no Piper model is configured.
 
-Download voice models from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/main) — you need the `.onnx` file and the `.onnx.json` config file in the same folder.
+Download voice models from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/main). You need the `.onnx` file and the `.onnx.json` config file in the same folder.
 
-Recommended models:
+Example Piper models:
 
 | Language | Model |
 |---|---|
@@ -129,6 +103,22 @@ Then set in `.env`:
 PIPER_MODEL_EN=~/.local/share/piper/en_US-lessac-medium.onnx
 PIPER_MODEL_DE=~/.local/share/piper/de_DE-thorsten-medium.onnx
 ```
+
+### Speech-to-Text
+
+Run [whisper.cpp](https://github.com/ggml-org/whisper.cpp) locally, no API key needed. See [Local AI Setup](#local-ai-setup) for the setup command. 
+
+If you prefer a cloud provider, set `STT_BASE_URL` and `STT_API_KEY` in `.env`.
+
+### Wake Word
+
+To enable always-on wake word mode, set in `.env`:
+
+```env
+WAKE_WORD_ENABLED=1
+```
+
+All tuning options are documented in `.env.example`.
 
 ## Quick Start
 
@@ -161,137 +151,22 @@ http://127.0.0.1:8000
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure only what you need.
+Copy `.env.example` to `.env`. All available options are documented inline with examples and defaults.
 
-### Speech-to-Text
-
-Cloud option with Groq:
-
-```env
-GROQ_API_KEY=<your-groq-api-key>
-WHISPER_LANGUAGE=en
-```
-
-Generic STT provider:
-
-```env
-STT_API_KEY=<your-stt-api-key>
-STT_MODEL=whisper-large-v3-turbo
-```
-
-Local `whisper.cpp` server:
-
-```env
-WHISPER_BASE_URL=http://127.0.0.1:8081
-WHISPER_LANGUAGE=en
-```
-
-If `WHISPER_BASE_URL` points to localhost, the listener calls the `whisper.cpp` `/inference` endpoint. For remote STT providers it uses an OpenAI-style transcription endpoint.
-
-### LLM
-
-The assistant talks to OpenAI-compatible chat completion endpoints.
-
-Local `llama.cpp`:
-
-```env
-LLM_BASE_URL=http://127.0.0.1:8080/v1
-LLM_MODEL=local
-```
-
-Ollama:
-
-```env
-LLM_BASE_URL=http://127.0.0.1:11434/v1
-LLM_MODEL=qwen2.5:7b
-```
-
-Cloud provider:
-
-```env
-LLM_API_KEY=<your-llm-api-key>
-LLM_BASE_URL=https://provider.example.com/v1
-LLM_MODEL=provider-model-name
-```
-
-If `/chat/completions` is missing from `LLM_BASE_URL`, the code appends it automatically.
-
-### Spotify
-
-Create a Spotify developer app and add this redirect URI:
+For Spotify and Google Calendar, OAuth setup is required. Add the following redirect URIs to your developer app:
 
 ```text
 http://127.0.0.1:8000/spotify/callback
-```
-
-Then set:
-
-```env
-SPOTIFY_CLIENT_ID=<your-spotify-client-id>
-SPOTIFY_CLIENT_SECRET=<your-spotify-client-secret>
-```
-
-Connect once in the browser:
-
-```text
-http://127.0.0.1:8000/spotify/auth
-```
-
-### Google Calendar
-
-Create a Google OAuth app and add this redirect URI:
-
-```text
 http://127.0.0.1:8000/calendar/callback
 ```
 
-Then set:
-
-```env
-GOOGLE_CLIENT_ID=<your-google-client-id>
-GOOGLE_CLIENT_SECRET=<your-google-client-secret>
-```
-
-Connect once in the browser:
-
-```text
-http://127.0.0.1:8000/calendar/auth
-```
-
-### Wake Word
-
-Enable always-on wake word mode:
-
-```env
-WAKE_WORD_ENABLED=1
-WAKE_WORD=hey_jarvis_v0.1
-WAKE_WORD_THRESHOLD=0.60
-WAKE_CONSECUTIVE_BLOCKS=2
-WAKE_REQUIRE_VAD=1
-WAKE_SESSION_TIMEOUT=15
-WAKE_LOCAL_WAIT_SECONDS=30
-VOICE_PAUSE_MEDIA_ON_TRIGGER=1
-VOICE_RESUME_MEDIA_ON_SLEEP=1
-```
-
-With wake word disabled, use the right Ctrl key as push-to-talk.
-
-### Embeddings
-
-Embeddings enable semantic note search. Without them, note search falls back to substring matching.
-
-```env
-EMBED_BASE_URL=http://127.0.0.1:11434/v1
-EMBED_MODEL=nomic-embed-text
-```
-
-Any OpenAI-compatible embeddings endpoint works. For cloud providers, set `EMBED_API_KEY` (falls back to `LLM_API_KEY` if not set).
+Then authorize once in the browser at `http://127.0.0.1:8000/spotify/auth` or `/calendar/auth`.
 
 ## Local AI Setup
 
-The assistant is designed to run fully local. The recommended stack is Ollama for LLM and embeddings, `whisper.cpp` for STT, and Piper for TTS.
+The assistant is designed to run fully local. One known-working stack is Ollama for LLM and embeddings, `whisper.cpp` for STT, and Piper for TTS.
 
-### Ollama (recommended)
+### Ollama
 
 Install [Ollama](https://ollama.com), then pull the models you need:
 
@@ -345,104 +220,20 @@ More details are in `docs/LOCAL_AI.md`.
 
 ## Example Commands
 
-### Apps and Windows
-
 ```text
-open Firefox
 open Firefox left
-open Firefox on workspace 2
-open Firefox left and Discord right
-move Firefox to the right
-move the active window to workspace 3
-move it back
-close Firefox
-close all windows
-```
-
-German examples:
-
-```text
 öffne Firefox links
-verschiebe Firefox auf Arbeitsfläche 2
-mach es rechts
-schiebe es zurück
-schließe alle Fenster
-```
-
-### Audio and Media
-
-```text
+open Firefox left and Discord right
+move it back
 volume 50
-volume up
-volume down
-mute
-unmute
-Spotify quieter
-next song
-pause music
-play music
-```
-
-### Spotify
-
-```text
 play playlist Chill
-play the song Around the World by Daft Punk
-what is playing
-```
-
-### Calendar
-
-```text
-what do I have today
-what do I have tomorrow
-show my events this week
 create event dentist tomorrow at 3 pm
-schedule meeting next Monday at 10:30 am
-```
-
-### Tasks and Timers
-
-```text
 remind me tomorrow to pay the bill
-add task submit documents
-show my tasks
-mark task 2 as done
-timer 10 minutes
-remind me in 30 minutes to call back
-```
-
-### Notes and Clipboard
-
-```text
-note: idea for a KDE assistant feature
-what did I note about Project Phoenix
-summarize my notes from last week
-translate this
 summarize this
-explain this
-improve this text
-```
-
-### Files and System
-
-```text
 find the PDF from last week
-open folder downloads
-open file invoice May
-how much RAM am I using
-system status
-how is the weather
 ```
 
-### Local Voice Session Commands
-
-```text
-stop listening
-wait a moment
-what did you hear
-do that again
-```
+See `docs/COMMANDS.md` for a longer command list.
 
 ## Custom Apps, URLs and Shortcuts
 
@@ -506,6 +297,7 @@ GET /calendar/auth
 
 Additional docs:
 
+- `docs/COMMANDS.md` for a longer list of supported command examples.
 - `docs/LOCAL_AI.md` for local `whisper.cpp` and `llama.cpp` setup.
 - `.env.example` for all environment variables with inline documentation.
 - `docs/ARCHITECTURE.md` for capability layout, parser order and runtime state.
@@ -517,7 +309,7 @@ Additional docs:
 Run tests:
 
 ```bash
-python3 -m unittest tests/test_parser.py tests/test_features.py
+python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
 Compile-check the main Python files:
@@ -532,20 +324,11 @@ python3 -m py_compile \
   scripts/listener.py
 ```
 
-Useful manual checks after parser or capability changes:
+For manual parser checks, use examples from `docs/COMMANDS.md`.
 
-```text
-open Firefox right
-open Firefox left and Discord right
-move it back
-close all windows
-volume 30
-Spotify quieter
-create event dentist tomorrow at 3 pm
-remind me tomorrow to pay the bill
-show my tasks
-what is my RAM usage
-```
+## Contributing
+
+Bug reports and feature requests are welcome. Open an issue on GitHub.
 
 ## Notes and Limitations
 

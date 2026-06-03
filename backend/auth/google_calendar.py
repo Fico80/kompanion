@@ -11,7 +11,7 @@ SCOPES = " ".join([
     "https://www.googleapis.com/auth/calendar.readonly",
     "https://www.googleapis.com/auth/calendar.events",
 ])
-TOKEN_FILE = os.path.expanduser("~/.config/lokaler-assistent/google_calendar_tokens.json")
+TOKEN_FILE = os.path.expanduser("~/.config/kompanion/google_calendar_tokens.json")
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
 _pending_state: str | None = None

@@ -141,6 +141,49 @@ def _format_note(raw: str, response_lang: str) -> str:
     return formatted.strip() if formatted else raw
 
 
+def _format_append(raw: str, response_lang: str, existing_note: str = "") -> str:
+    note_context = (
+        f"EXISTING NOTE (style reference only — do NOT reproduce it):\n{existing_note[:1500]}\n\n"
+        if existing_note else ""
+    )
+    if response_lang == "de":
+        prompt = (
+            f"{note_context}"
+            f"NEUER DIKTATTEXT:\n{raw}\n\n"
+            "Formatiere NUR den neuen Diktattext als einzelnen Markdown-Eintrag auf Deutsch.\n"
+            "- Passe das Format der bestehenden Notiz an (z.B. nummerierte Liste → nächste Nummer).\n"
+            "- KEINE Überschrift, KEIN Titel.\n"
+            "- Füllwörter entfernen.\n"
+            "- Gib NUR den neuen Eintrag aus — keinen bestehenden Inhalt."
+        )
+    else:
+        prompt = (
+            f"{note_context}"
+            f"NEW DICTATED TEXT:\n{raw}\n\n"
+            "Format ONLY the new dictated text as a single Markdown entry in English.\n"
+            "- Match the format of the existing note (e.g. numbered list → next number).\n"
+            "- NO heading, NO title.\n"
+            "- Remove filler words.\n"
+            "- Output ONLY the new entry — none of the existing content."
+        )
+    formatted = llm_complete(prompt, max_tokens=256)
+    return formatted.strip() if formatted else raw
+
+
+def _note_filename(content: str) -> str:
+    prompt = (
+        "Generate a short descriptive file name slug (3-5 words, lowercase, hyphens, no special chars) "
+        "for a note with this content. Reply ONLY with the slug.\n\n"
+        + content[:300]
+    )
+    slug = llm_complete(prompt, max_tokens=20)
+    if slug:
+        slug = re.sub(r"[^\w-]", "", slug.strip().lower().replace(" ", "-"))[:50]
+    if not slug:
+        slug = re.sub(r"[^\w\s-]", "", content[:30]).strip().replace(" ", "-").lower()
+    return slug
+
+
 def save_note(content: str, response_lang: str = "en") -> dict:
     import memory as _mem
 
@@ -149,8 +192,8 @@ def save_note(content: str, response_lang: str = "en") -> dict:
     notes_dir = str(NOTES_DIR)
     os.makedirs(notes_dir, exist_ok=True)
     now = datetime.now()
-    slug = re.sub(r"[^\w\s-]", "", content[:30]).strip().replace(" ", "-")
-    filename = f"{now.strftime('%Y-%m-%d_%H-%M')}_{slug}.md"
+    slug = _note_filename(content)
+    filename = f"{now.strftime('%Y-%m-%d')}_{slug}.md"
     link_name = filename[:-3]
     path = os.path.join(notes_dir, filename)
 
@@ -189,8 +232,10 @@ def save_note(content: str, response_lang: str = "en") -> dict:
 def _split_append(text: str) -> tuple[str, str]:
     import json as _json
     result = llm_complete(
-        f"Extract the note title and new content from this voice command.\n"
-        f"Reply ONLY as JSON: {{\"query\": \"...\", \"content\": \"...\"}}\n\n{text}",
+        f"This is a voice command to add content to an existing note.\n"
+        f"Extract the note title to search for and the new content to append.\n"
+        f"Reply ONLY as JSON: {{\"query\": \"<note title>\", \"content\": \"<new content>\"}}\n\n"
+        f"Voice command: {text}",
         max_tokens=128,
     )
     if result:
@@ -227,9 +272,14 @@ def append_note(query: str, addition: str, response_lang: str = "en") -> dict:
     if not path or not os.path.exists(path):
         msg = "Notiz-Datei nicht gefunden." if response_lang == "de" else "Note file not found."
         return {"success": False, "message": msg}
-    addition = _format_note(addition, response_lang)
+    try:
+        with open(path, encoding="utf-8") as f:
+            existing_note = f.read()
+    except Exception:
+        existing_note = ""
+    addition = _format_append(addition, response_lang, existing_note)
     with open(path, "a", encoding="utf-8") as f:
-        f.write(f"\n{addition}\n")
+        f.write(f"{addition}\n")
     # Re-embed the full note content so search stays accurate.
     # Do NOT insert a new DB row — one row per file.
     try:
@@ -238,11 +288,9 @@ def append_note(query: str, addition: str, response_lang: str = "en") -> dict:
         _mem.update_note_embedding(path, full_content)
     except Exception:
         pass
-    short = addition[:50] + ("…" if len(addition) > 50 else "")
-    name = os.path.basename(path)
-    msg = (f"Ergänzt in '{name}': {short}" if response_lang == "de"
-           else f"Added to '{name}': {short}")
-    return {"success": True, "message": msg}
+    msg = ("Hinzugefügt. Möchtest du es sehen?" if response_lang == "de"
+           else "Added. Do you want to see it?")
+    return {"success": True, "message": msg, "_open_on_yes": path}
 
 
 def execute(parsed: dict) -> dict | None:
