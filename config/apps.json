@@ -1,0 +1,62 @@
+{
+  "_how_to": [
+    "Add a new app:",
+    "  'keyword': {",
+    "    'cmd':     'start command',        -- terminal command used to launch the app, e.g. 'firefox'",
+    "    'name':    'Display name',         -- shown in confirmations and responses",
+    "    'class':   'window class',         -- KWin window class, check with xprop WM_CLASS",
+    "    'title':   'window title',         -- part of the window title, check with xprop WM_NAME",
+    "    'flatpak': 'com.example.App'       -- optional, only for Flatpak apps",
+    "  }",
+    "",
+    "Multiple keywords for the same app are allowed, e.g. 'vscode' and 'vs code'.",
+    "For private or machine-specific paths, create config/apps.local.json.",
+    "Example for an AppImage: {'myapp': {'cmd': '/home/you/Applications/MyApp.AppImage', 'name': 'My App', 'class': 'myapp', 'title': 'My App'}}",
+    "apps.local.json is ignored by Git and overrides or extends this file.",
+    "Find a Flatpak ID with: flatpak list --columns=name,application",
+    "Find a window class with: xprop WM_CLASS, then click the window"
+  ],
+
+  "vscode":              {"cmd": "code",           "name": "VS Code",         "class": "code",            "title": "Visual Studio Code"},
+  "vs code":             {"cmd": "code",           "name": "VS Code",         "class": "code",            "title": "Visual Studio Code"},
+  "code":                {"cmd": "code",           "name": "VS Code",         "class": "code",            "title": "Visual Studio Code"},
+
+  "firefox":             {"cmd": "firefox",        "name": "Firefox",         "class": "firefox",         "title": "Firefox"},
+  "browser":             {"cmd": "firefox",        "name": "Firefox",         "class": "firefox",         "title": "Firefox"},
+
+  "konsole":             {"cmd": "konsole",        "name": "Konsole",         "class": "konsole",         "title": "Konsole"},
+  "console":             {"cmd": "konsole",        "name": "Konsole",         "class": "konsole",         "title": "Konsole"},
+  "terminal":            {"cmd": "konsole",        "name": "Konsole",         "class": "konsole",         "title": "Konsole"},
+
+  "spotify":             {"cmd": "spotify",        "name": "Spotify",         "class": "spotify",         "title": "Spotify",        "flatpak": "com.spotify.Client"},
+  "spotyfe":             {"cmd": "spotify",        "name": "Spotify",         "class": "spotify",         "title": "Spotify",        "flatpak": "com.spotify.Client"},
+  "spotyfa":             {"cmd": "spotify",        "name": "Spotify",         "class": "spotify",         "title": "Spotify",        "flatpak": "com.spotify.Client"},
+  "spotifa":             {"cmd": "spotify",        "name": "Spotify",         "class": "spotify",         "title": "Spotify",        "flatpak": "com.spotify.Client"},
+  "spotifai":            {"cmd": "spotify",        "name": "Spotify",         "class": "spotify",         "title": "Spotify",        "flatpak": "com.spotify.Client"},
+
+  "zapzap":              {"cmd": "zapzap",         "name": "ZapZap",          "class": "zapzap",          "title": "ZapZap",         "flatpak": "com.rtosta.zapzap"},
+  "whatsapp":            {"cmd": "zapzap",         "name": "ZapZap",          "class": "zapzap",          "title": "ZapZap",         "flatpak": "com.rtosta.zapzap"},
+
+  "discord":             {"cmd": "discord",        "name": "Discord",         "class": "discord",         "title": "Discord",        "flatpak": "com.discordapp.Discord"},
+
+  "sublime":             {"cmd": "subl",           "name": "Sublime Text",    "class": "sublime_text",    "title": "Sublime",        "flatpak": "com.sublimehq.SublimeText"},
+  "sublime text":        {"cmd": "subl",           "name": "Sublime Text",    "class": "sublime_text",    "title": "Sublime",        "flatpak": "com.sublimehq.SublimeText"},
+  "subl":                {"cmd": "subl",           "name": "Sublime Text",    "class": "sublime_text",    "title": "Sublime",        "flatpak": "com.sublimehq.SublimeText"},
+
+  "rstudio":             {"cmd": "rstudio",        "name": "RStudio",         "class": "rstudio",         "title": "RStudio"},
+
+  "obsidian":            {"cmd": "obsidian",       "name": "Obsidian",        "class": "obsidian",        "title": "Obsidian",       "flatpak": "md.obsidian.Obsidian"},
+
+  "settings":            {"cmd": "systemsettings", "name": "System Settings", "class": "systemsettings",  "title": "System Settings"},
+  "einstellungen":       {"cmd": "systemsettings", "name": "System Settings", "class": "systemsettings",  "title": "System Settings"},
+  "systemeinstellungen": {"cmd": "systemsettings", "name": "System Settings", "class": "systemsettings",  "title": "System Settings"},
+
+  "surfshark":           {"cmd": "surfshark",      "name": "Surfshark",       "class": "surfshark",       "title": "Surfshark",      "flatpak": "com.surfshark.Surfshark"},
+  "vpn":                 {"cmd": "surfshark",      "name": "Surfshark",       "class": "surfshark",       "title": "Surfshark",      "flatpak": "com.surfshark.Surfshark"},
+
+  "dolphin":             {"cmd": "dolphin",        "name": "Dolphin",         "class": "dolphin",         "title": "Dolphin"},
+  "dateimanager":        {"cmd": "dolphin",        "name": "Dolphin",         "class": "dolphin",         "title": "Dolphin"},
+
+  "discover":            {"cmd": "plasma-discover", "name": "Discover",       "class": "discover",        "title": "Discover"},
+  "software":            {"cmd": "plasma-discover", "name": "Discover",       "class": "discover",        "title": "Discover"}
+}

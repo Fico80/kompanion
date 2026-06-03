@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="app-container">
+        <!-- Main Launcher Card -->
+        <main class="launcher" id="launcher-card">
+            <header class="launcher-header">
+                <div class="input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="command-input" 
+                        placeholder="What can I help with? For example: 'open Firefox left'" 
+                        autocomplete="off"
+                        autofocus
+                    >
+                    <button id="submit-btn" title="Run command (Enter)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Dynamic Result Alert -->
+            <div id="result-alert" class="result-alert hidden">
+                <div class="alert-content">
+                    <span class="alert-icon"></span>
+                    <span id="alert-message" class="alert-message"></span>
+                </div>
+            </div>
+
+            <!-- Launcher Content -->
+            <section class="launcher-content">
+                <!-- Quick Test Tiles -->
+                <div class="section-container">
+                    <h2 class="section-title">Quick Start & Testing</h2>
+                    <div class="quick-tiles">
+                        <button class="tile" data-command="open Perplexity on workspace 2 right">
+                            <span class="tile-title">Perplexity</span>
+                            <span class="tile-subtitle">workspace 2 right</span>
+                        </button>
+                        <button class="tile" data-command="open Firefox left">
+                            <span class="tile-title">Firefox Browser</span>
+                            <span class="tile-subtitle">left tile</span>
+                        </button>
+                        <button class="tile" data-command="open Spotify on workspace 3">
+                            <span class="tile-title">Spotify</span>
+                            <span class="tile-subtitle">workspace 3</span>
+                        </button>
+                        <button class="tile" data-command="open folder Downloads left">
+                            <span class="tile-title">Downloads folder</span>
+                            <span class="tile-subtitle">left tile</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Suggestions -->
+                <div class="section-container" id="suggestions-section">
+                    <h2 class="section-title">Frequently Used</h2>
+                    <div class="quick-tiles" id="suggestion-tiles">
+                        <div class="empty-history">Suggestions appear automatically after repeated commands.</div>
+                    </div>
+                </div>
+
+                <!-- Live Command History -->
+                <div class="section-container">
+                    <h2 class="section-title">Command History</h2>
+                    <div class="history-list" id="history-list">
+                        <div class="empty-history">No commands yet. Type a command above or click a quick-start tile.</div>
+                    </div>
+                </div>
+                
+                <!-- Documentation Cheat Sheet -->
+                <div class="section-container info-section">
+                    <h2 class="section-title">Supported Commands & Structure</h2>
+                    <div class="cheat-sheet-grid">
+                        <div class="cheat-card">
+                            <h3>1. Applications</h3>
+                            <p>Firefox, VS Code, Konsole, Spotify, ZapZap, Sublime Text, RStudio, Discord, Einstellungen</p>
+                        </div>
+                        <div class="cheat-card">
+                            <h3>2. Web & Paths</h3>
+                            <p>open Perplexity, open Google, open folder Downloads, open file [path]</p>
+                        </div>
+                        <div class="cheat-card">
+                            <h3>3. Window Control</h3>
+                            <p>Add "left", "right" or "fullscreen" at the end to position the window.</p>
+                        </div>
+                        <div class="cheat-card">
+                            <h3>4. Monitor & Workspaces</h3>
+                            <p>"on workspace 2", "on left monitor", "on right screen"</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <footer class="launcher-footer">
+                <span class="shortcut-tip"><kbd>Enter</kbd> Run</span>
+                <span class="shortcut-tip"><kbd>↑</kbd> <kbd>↓</kbd> Browse history</span>
+                <span class="status-indicator"><span class="pulse-dot"></span> Server active</span>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

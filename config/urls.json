@@ -1,0 +1,25 @@
+{
+  "_comment": "Custom URLs. No restart needed. Format: 'keyword': {'url': '...', 'title': '...'}",
+
+  "perplexity":   {"url": "https://www.perplexity.ai",             "title": "Perplexity"},
+  "google":       {"url": "https://www.google.com",                "title": "Google"},
+  "notebooklm":   {"url": "https://notebooklm.google.com",         "title": "NotebookLM"},
+  "notebook":     {"url": "https://notebooklm.google.com",         "title": "NotebookLM"},
+  "youtube":      {"url": "https://www.youtube.com",               "title": "YouTube"},
+  "github":       {"url": "https://www.github.com",                "title": "GitHub"},
+  "chatgpt":      {"url": "https://chat.openai.com",               "title": "ChatGPT"},
+  "claude":       {"url": "https://claude.ai",                     "title": "Claude"},
+  "gmail":        {"url": "https://mail.google.com",               "title": "Gmail"},
+  "calendar":     {"url": "https://calendar.google.com",           "title": "Google Calendar"},
+  "drive":        {"url": "https://drive.google.com",              "title": "Google Drive"},
+  "reddit":       {"url": "https://www.reddit.com",                "title": "Reddit"},
+  "twitch":       {"url": "https://www.twitch.tv",                 "title": "Twitch"},
+  "netflix":      {"url": "https://www.netflix.com",               "title": "Netflix"},
+  "flow":         {"url": "https://labs.google/fx/de/tools/flow",  "title": "Flow"},
+  "gemini":       {"url": "https://gemini.google.com",             "title": "Gemini"},
+  "amazon":       {"url": "https://www.amazon.com",                "title": "Amazon"},
+  "twitter":      {"url": "https://www.x.com",                     "title": "X"},
+  "GoStudent":    {"url": "https://gostudent.org/chat/lessons/private",    "title": "GoStudent"},
+  "moodle":       {"url": "https://moodle.univie.ac.at/",          "title": "Moodle"},
+  "Calendar":     {"url": "https://calendar.google.com",           "title": "Google Calendar"}
+}

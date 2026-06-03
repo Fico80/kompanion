@@ -1,0 +1,41 @@
+# Secrets & runtime data
+.env
+data/
+config/apps.local.json
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# Python
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+
+# Agent / AI assistant config (local only)
+CLAUDE.md
+.claude/
+.agents/
+.codex/
+.cursor/
+.aider*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

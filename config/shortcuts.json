@@ -1,0 +1,12 @@
+{
+  "work mode": [
+    "open VS Code on left screen",
+    "open Firefox on right screen",
+    "open Spotify and WhatsApp"
+  ],
+  "gaming mode": [
+    "open Steam on left screen",
+    "open Discord on right screen",
+    "open Spotify"
+  ]
+}
