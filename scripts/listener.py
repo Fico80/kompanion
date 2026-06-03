@@ -620,6 +620,22 @@ class VoiceOrbWidget(QWidget):
             rect = QRectF(cx - inner_r, cy - inner_r, inner_r * 2, inner_r * 2)
             painter.drawArc(rect, int(angle * 16), 100 * 16)
 
+    def _draw_k_mark(self, painter, cx, cy, mark_r):
+        """Draw a simple status-colored K mark for the pill HUD."""
+        ring_col = self._STATE_CFG.get(self.state, self._STATE_CFG["listening"])["color"]
+        r, g, b = ring_col.red(), ring_col.green(), ring_col.blue()
+        mark_col = QColor(r, g, b, 205)
+
+        font = QFont("Inter, Segoe UI, sans-serif", 25)
+        font.setWeight(QFont.Weight.Black)
+        painter.setFont(font)
+        painter.setPen(QPen(mark_col, 1))
+        painter.drawText(
+            QRectF(cx - mark_r, cy - mark_r - 1, mark_r * 2, mark_r * 2),
+            Qt.AlignmentFlag.AlignCenter,
+            "K",
+        )
+
     def _paint_pill(self, painter):
         w, h = self.width(), self.height()
         cy = h / 2.0
@@ -636,7 +652,7 @@ class VoiceOrbWidget(QWidget):
 
         # State-colored border
         border_col = QColor(ring_col)
-        border_col.setAlpha(55)
+        border_col.setAlpha(72)
         painter.setPen(QPen(border_col, 1.2))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRoundedRect(QRectF(0.6, 0.6, w - 1.2, h - 1.2), 35.4, 35.4)
@@ -645,8 +661,8 @@ class VoiceOrbWidget(QWidget):
         painter.setPen(QPen(QColor(255, 255, 255, 30), 1.0))
         painter.drawLine(72, 10, 72, h - 10)
 
-        # Orb (rings + core)
-        self._draw_orb(painter, cx, cy, orb_r)
+        # K mark (status-colored)
+        self._draw_k_mark(painter, cx, cy, orb_r)
 
         # Text area (right side)
         text_x = 82.0
