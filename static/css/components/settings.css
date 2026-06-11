@@ -95,6 +95,17 @@
     background: rgba(34, 211, 238, 0.025);
 }
 
+.settings-field--with-action {
+    align-items: center;
+}
+
+.settings-control-row {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .settings-label {
     color: #cbd5e1;
     font-size: 0.84rem;
@@ -195,6 +206,30 @@
     color: #ffffff;
 }
 
+.settings-secondary-btn {
+    background: var(--button-surface);
+    border: 1px solid var(--button-border);
+    border-radius: 8px;
+    color: #cbd5e1;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 700;
+    min-height: 36px;
+    padding: 8px 12px;
+    transition: background var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed), transform var(--transition-speed);
+    white-space: nowrap;
+}
+
+.settings-secondary-btn:hover,
+.settings-secondary-btn.is-recording {
+    background: rgba(34, 211, 238, 0.08);
+    border-color: rgba(34, 211, 238, 0.28);
+    box-shadow: 0 8px 16px rgba(34, 211, 238, 0.06);
+    color: #67e8f9;
+    transform: translateY(-1px);
+}
+
 .settings-save-btn:hover {
     box-shadow: 0 14px 28px rgba(34, 211, 238, 0.18), 0 0 18px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
     filter: brightness(1.06);
@@ -243,6 +278,10 @@
     .settings-footer {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .settings-control-row {
+        grid-template-columns: 1fr;
     }
 
     .settings-save-btn {
