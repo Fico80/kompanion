@@ -416,6 +416,97 @@ def _execute_command_locked(req: CommandRequest):
         "result": result
     }
 
+# --- Settings ----------------------------------------------------------------
+
+_SETTINGS_KEYS: set[str] = {
+    "LLM_BASE_URL", "LLM_MODEL", "LLM_API_KEY",
+    "WHISPER_BASE_URL", "WHISPER_LANGUAGE",
+    "STT_BASE_URL", "STT_API_KEY", "STT_MODEL",
+    "PIPER_MODEL", "PIPER_MODEL_EN", "PIPER_MODEL_DE",
+    "HUD_STYLE", "HUD_POSITION", "HOTKEY_KEY",
+    "SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET",
+    "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET",
+    "NOTES_DIR",
+    "WAKE_WORD_ENABLED", "WAKE_WORD", "WAKE_WORD_THRESHOLD",
+    "VISION_BASE_URL", "VISION_MODEL", "VISION_API_KEY",
+}
+
+def _read_env_file() -> dict[str, str]:
+    result = {k: "" for k in _SETTINGS_KEYS}
+    if not ENV_FILE.exists():
+        return result
+    with open(ENV_FILE) as f:
+        for line in f:
+            stripped = line.strip()
+            # Match active lines and commented-out setting lines
+            active = stripped if "=" in stripped and not stripped.startswith("#") else None
+            commented = stripped.lstrip("# ") if stripped.startswith("#") and "=" in stripped else None
+            for raw in filter(None, [active, commented]):
+                key, _, val = raw.partition("=")
+                key = key.strip()
+                if key in _SETTINGS_KEYS and (active or key not in result or result[key] == ""):
+                    result[key] = val.strip().strip('"').strip("'") if active else result.get(key, "")
+    return result
+
+def _write_env_file(updates: dict[str, str]) -> None:
+    lines: list[str] = []
+    if ENV_FILE.exists():
+        with open(ENV_FILE) as f:
+            lines = f.readlines()
+
+    handled: set[str] = set()
+
+    def _new_line(key: str, val: str) -> str:
+        return f"{key}={val}\n" if val else f"# {key}=\n"
+
+    out: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        # Detect active or commented key on this line
+        candidate = stripped if "=" in stripped and not stripped.startswith("#") else (
+            stripped.lstrip("# ") if stripped.startswith("#") and "=" in stripped else None
+        )
+        key = candidate.partition("=")[0].strip() if candidate else None
+        if key in updates:
+            handled.add(key)
+            out.append(_new_line(key, updates[key]))
+        else:
+            out.append(line)
+
+    for key, val in updates.items():
+        if key not in handled:
+            out.append(_new_line(key, val))
+
+    with open(ENV_FILE, "w") as f:
+        f.writelines(out)
+
+@app.get("/api/settings")
+def get_settings():
+    return _read_env_file()
+
+@app.post("/api/settings")
+async def save_settings(request: Request):
+    body = await request.json()
+    updates = {k: str(v).strip() for k, v in body.items() if k in _SETTINGS_KEYS}
+    _write_env_file(updates)
+    return {"ok": True}
+
+# --- Logs --------------------------------------------------------------------
+
+@app.get("/api/logs")
+def get_logs(limit: int = 200):
+    return mem.get_logs(limit)
+
+@app.delete("/api/logs")
+def clear_logs():
+    count = mem.clear_logs()
+    return {"deleted": count}
+
+@app.delete("/api/logs/{log_id}")
+def delete_log(log_id: int):
+    ok = mem.delete_log(log_id)
+    return {"ok": ok}
+
 @app.get("/api/memory/recent")
 def memory_recent():
     return mem.get_recent(20)

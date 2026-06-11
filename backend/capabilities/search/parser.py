@@ -109,6 +109,13 @@ def parse_file_search(text: str) -> dict | None:
         if file_patterns is None and search_type is None and search_dir == os.path.expanduser("~"):
             return None
 
+    # "open folder Downloads left" — only placement words remain → let _parse_regex open the folder
+    _PLACEMENT_WORDS = {"left", "right", "full", "fullscreen", "links", "rechts", "vollbild", "maximized"}
+    if search_type == "directory" and file_patterns is None and time_filter is None:
+        remaining_words = set(raw.lower().split()) - _PLACEMENT_WORDS
+        if not remaining_words:
+            return None
+
     return {
         "action": "search_files",
         "target": raw or None,

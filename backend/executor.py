@@ -16,6 +16,8 @@ from capabilities.tasks import executor as _tasks_exec
 from capabilities.timer import executor as _timer_exec
 from capabilities.weather import executor as _weather_exec
 from capabilities.windows import executor as _windows_exec
+from capabilities.browser import executor as _browser_exec
+from capabilities.screen import executor as _screen_exec
 from shared.i18n import lang
 
 
@@ -54,6 +56,12 @@ def execute_parsed_intent(parsed: dict) -> dict:
     window_class = parsed.get("window_class", "")
     window_title = parsed.get("window_title", "")
     
+    if action in ("browser_open", "browser_search", "browser_find", "browser_task"):
+        return _browser_exec.execute_browser(parsed)
+
+    if action == "screen_query":
+        return _screen_exec.execute(parsed)
+
     if action == "clipboard_task":
         return _clipboard_exec.execute(parsed)
 

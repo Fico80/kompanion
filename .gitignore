@@ -22,14 +22,6 @@ __pycache__/
 dist/
 build/
 
-# Agent / AI assistant config (local only)
-CLAUDE.md
-.claude/
-.agents/
-.codex/
-.cursor/
-.aider*
-
 # IDE
 .vscode/
 .idea/

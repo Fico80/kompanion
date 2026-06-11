@@ -1,0 +1,80 @@
+.quick-tiles {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.tile {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+    border: 1px solid var(--button-border);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 82px;
+    overflow: hidden;
+    padding: 14px 15px;
+    position: relative;
+    text-align: left;
+    transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.tile::before {
+    background: linear-gradient(180deg, var(--accent-color), var(--primary-color));
+    content: "";
+    inset: 0 auto 0 0;
+    opacity: 0;
+    position: absolute;
+    transition: opacity var(--transition-speed);
+    width: 3px;
+}
+
+.tile::after {
+    color: rgba(255, 255, 255, 0.24);
+    content: "↗";
+    font-size: 0.78rem;
+    line-height: 1;
+    opacity: 0;
+    position: absolute;
+    right: 13px;
+    top: 12px;
+    transform: translate(-3px, 3px);
+    transition: opacity var(--transition-speed), transform var(--transition-speed), color var(--transition-speed);
+}
+
+.tile:hover {
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.08), rgba(99, 102, 241, 0.055));
+    border-color: rgba(34, 211, 238, 0.24);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22), 0 0 18px rgba(34, 211, 238, 0.055);
+    transform: translateY(-2px);
+}
+
+.tile:hover::before,
+.tile:hover::after {
+    opacity: 1;
+}
+
+.tile:hover::after {
+    color: #67e8f9;
+    transform: translate(0, 0);
+}
+
+.tile:active {
+    transform: translateY(0) scale(0.99);
+}
+
+.tile-title {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    padding-right: 18px;
+}
+
+.tile-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}

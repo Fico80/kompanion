@@ -97,12 +97,13 @@ if echo "${LLM_BASE_URL:-}" | grep -qE "127\.0\.0\.1|localhost"; then
         if ! lsof -i:"$LLAMA_PORT" >/dev/null 2>&1; then
             echo "[*] Starting llama-server on port $LLAMA_PORT..."
             "$LLAMA_BIN" -m "$LLAMA_MDL" --port "$LLAMA_PORT" --host 127.0.0.1 \
-                -ngl "${LLAMA_GPU_LAYERS:-99}" -c "${LLAMA_CTX:-2048}" --parallel 1 \
+                -ngl "${LLAMA_GPU_LAYERS:-99}" -c "${LLAMA_CTX:-8192}" --parallel 1 \
                 > /tmp/llama-server.log 2>&1 &
             LLAMA_PID=$!
             sleep 3
         else
             echo "[*] llama-server is already running on port $LLAMA_PORT."
+            echo "    If you changed LLAMA_CTX, stop the existing llama-server before restarting Kompanion."
         fi
     fi
 fi

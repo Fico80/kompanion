@@ -21,5 +21,6 @@
   "amazon":       {"url": "https://www.amazon.com",                "title": "Amazon"},
   "twitter":      {"url": "https://www.x.com",                     "title": "X"},
   "gostudent":    {"url": "https://gostudent.org/chat/lessons/private",    "title": "GoStudent"},
+  "go student":    {"url": "https://gostudent.org/chat/lessons/private",    "title": "GoStudent"},
   "moodle":       {"url": "https://moodle.univie.ac.at/",          "title": "Moodle"}
 }

@@ -1,0 +1,43 @@
+#submit-btn {
+    align-items: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(34, 211, 238, 0.86));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(34, 211, 238, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    flex: 0 0 auto;
+    height: 38px;
+    justify-content: center;
+    position: relative;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed), filter var(--transition-speed);
+    width: 38px;
+}
+
+#submit-btn svg {
+    height: 18px;
+    stroke-width: 2.25;
+    transition: transform var(--transition-speed);
+    width: 18px;
+}
+
+#submit-btn:hover {
+    box-shadow: 0 12px 24px rgba(34, 211, 238, 0.18), 0 0 18px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+#submit-btn:hover svg {
+    transform: translateX(1px);
+}
+
+#submit-btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+#submit-btn:disabled {
+    box-shadow: none;
+    filter: grayscale(0.25);
+    transform: none;
+}

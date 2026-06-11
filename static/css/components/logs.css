@@ -1,0 +1,148 @@
+.logs-header {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.logs-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.logs-filter-btn {
+    background: var(--button-surface);
+    border: 1px solid var(--button-border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
+    font-weight: 600;
+    min-height: 30px;
+    padding: 5px 11px;
+    transition: background var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed), transform var(--transition-speed);
+}
+
+.logs-filter-btn:hover,
+.logs-filter-btn.active {
+    background: rgba(34, 211, 238, 0.08);
+    border-color: rgba(34, 211, 238, 0.28);
+    box-shadow: 0 8px 16px rgba(34, 211, 238, 0.06);
+    color: #67e8f9;
+}
+
+.logs-filter-btn:hover {
+    transform: translateY(-1px);
+}
+
+.logs-clear-btn {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 8px;
+    color: #fca5a5;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-left: 4px;
+    min-height: 30px;
+    padding: 5px 11px;
+    transition: background var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed), transform var(--transition-speed);
+}
+
+.logs-clear-btn:hover {
+    background: rgba(239, 68, 68, 0.13);
+    border-color: rgba(239, 68, 68, 0.58);
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.08);
+    color: #fecaca;
+    transform: translateY(-1px);
+}
+
+.logs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.log-item {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    display: grid;
+    font-size: 0.85rem;
+    gap: 10px;
+    grid-template-columns: 1fr auto;
+    padding: 10px 14px;
+    transition: all var(--transition-speed);
+}
+
+.log-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.log-item.log-error {
+    border-color: rgba(239, 68, 68, 0.08);
+}
+
+.log-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.log-text {
+    color: var(--text-primary);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.log-meta {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.log-time {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+}
+
+.log-controls {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    gap: 6px;
+}
+
+.log-delete-btn {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.34);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.85rem;
+    height: 26px;
+    justify-content: center;
+    line-height: 1;
+    transition: background var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed), transform var(--transition-speed);
+    width: 26px;
+}
+
+.log-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.28);
+    color: #fca5a5;
+    transform: scale(1.04);
+}

@@ -88,7 +88,7 @@ def execute_command(text):
     return resp.json()
 
 # Actions that should be spoken aloud (query responses, not "open Firefox" etc.)
-_SPEAK_ACTIONS = {"query_calendar", "query_weather", "query_system", "query_spotify", "save_note", "append_note", "clipboard_task", "query_shortcut_suggestions", "save_shortcut_sequence", "search_files", "select_item", "needs_clarification", "undo", "close_all_windows", "confirm", "add_task", "query_tasks", "complete_task", "query_notes", "voice_recall"}
+_SPEAK_ACTIONS = {"query_calendar", "query_weather", "query_system", "query_spotify", "save_note", "append_note", "clipboard_task", "query_shortcut_suggestions", "save_shortcut_sequence", "search_files", "select_item", "needs_clarification", "undo", "close_all_windows", "confirm", "add_task", "query_tasks", "complete_task", "query_notes", "voice_recall", "screen_query"}
 
 _ASSISTANT_NAME = r"(?:jarvis|comp|komp|companion|kompanion)"
 _SLEEP_COMMAND_RE = re.compile(

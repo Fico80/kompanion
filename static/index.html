@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
+    <script src="js/main.js" type="module"></script>
 </head>
 <body>
     <div class="glass-bg"></div>
@@ -46,29 +46,19 @@
                 </div>
             </div>
 
-            <!-- Launcher Content -->
-            <section class="launcher-content">
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="commands">Commands</button>
+                <button class="tab-btn" data-tab="logs">Logs</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </nav>
+
+            <!-- Commands Tab -->
+            <section class="launcher-content" id="tab-commands">
                 <!-- Quick Test Tiles -->
                 <div class="section-container">
                     <h2 class="section-title">Quick Start & Testing</h2>
-                    <div class="quick-tiles">
-                        <button class="tile" data-command="open Perplexity on workspace 2 right">
-                            <span class="tile-title">Perplexity</span>
-                            <span class="tile-subtitle">workspace 2 right</span>
-                        </button>
-                        <button class="tile" data-command="open Firefox left">
-                            <span class="tile-title">Firefox Browser</span>
-                            <span class="tile-subtitle">left tile</span>
-                        </button>
-                        <button class="tile" data-command="open Spotify on workspace 3">
-                            <span class="tile-title">Spotify</span>
-                            <span class="tile-subtitle">workspace 3</span>
-                        </button>
-                        <button class="tile" data-command="open folder Downloads left">
-                            <span class="tile-title">Downloads folder</span>
-                            <span class="tile-subtitle">left tile</span>
-                        </button>
-                    </div>
+                    <div class="quick-tiles" id="quick-tiles"></div>
                 </div>
 
                 <!-- Dynamic Suggestions -->
@@ -79,42 +69,211 @@
                     </div>
                 </div>
 
-                <!-- Live Command History -->
-                <div class="section-container">
-                    <h2 class="section-title">Command History</h2>
-                    <div class="history-list" id="history-list">
-                        <div class="empty-history">No commands yet. Type a command above or click a quick-start tile.</div>
-                    </div>
-                </div>
-                
                 <!-- Documentation Cheat Sheet -->
                 <div class="section-container info-section">
                     <h2 class="section-title">Supported Commands & Structure</h2>
-                    <div class="cheat-sheet-grid">
-                        <div class="cheat-card">
-                            <h3>1. Applications</h3>
-                            <p>Firefox, VS Code, Konsole, Spotify, ZapZap, Sublime Text, RStudio, Discord, Einstellungen</p>
-                        </div>
-                        <div class="cheat-card">
-                            <h3>2. Web & Paths</h3>
-                            <p>open Perplexity, open Google, open folder Downloads, open file [path]</p>
-                        </div>
-                        <div class="cheat-card">
-                            <h3>3. Window Control</h3>
-                            <p>Add "left", "right" or "fullscreen" at the end to position the window.</p>
-                        </div>
-                        <div class="cheat-card">
-                            <h3>4. Monitor & Workspaces</h3>
-                            <p>"on workspace 2", "on left monitor", "on right screen"</p>
-                        </div>
-                    </div>
+                    <div class="cheat-sheet-grid" id="cheat-sheet"></div>
                 </div>
             </section>
-            
+
+            <!-- Logs Tab -->
+            <section class="launcher-content hidden" id="tab-logs">
+                <div class="section-container">
+                    <div class="logs-header">
+                        <h2 class="section-title">Command Logs</h2>
+                        <div class="logs-actions">
+                            <button class="logs-filter-btn active" data-filter="all">All</button>
+                            <button class="logs-filter-btn" data-filter="success">✓ Success</button>
+                            <button class="logs-filter-btn" data-filter="error">✗ Error</button>
+                            <button class="logs-clear-btn" id="clear-logs-btn" title="Delete all logs">Clear all</button>
+                        </div>
+                    </div>
+                    <div class="logs-list" id="logs-list">
+                        <div class="empty-history">No logs yet.</div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section class="launcher-content hidden" id="tab-settings">
+                <div class="settings-notice">
+                    <span>⚠</span> Changes are saved to <code>.env</code> and take effect after restart.
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">LLM</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Base URL</span>
+                            <input class="settings-input" type="text" data-key="LLM_BASE_URL" placeholder="http://127.0.0.1:11434/v1">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Model</span>
+                            <input class="settings-input" type="text" data-key="LLM_MODEL" placeholder="qwen2.5:7b">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">API Key</span>
+                            <input class="settings-input" type="password" data-key="LLM_API_KEY" placeholder="sk-… or leave empty for local">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Speech Input (STT)</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Whisper URL (local)</span>
+                            <input class="settings-input" type="text" data-key="WHISPER_BASE_URL" placeholder="http://127.0.0.1:8081">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Language</span>
+                            <input class="settings-input" type="text" data-key="WHISPER_LANGUAGE" placeholder="en">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Cloud STT URL</span>
+                            <input class="settings-input" type="text" data-key="STT_BASE_URL" placeholder="https://api.groq.com/openai/v1">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Cloud STT Key</span>
+                            <input class="settings-input" type="password" data-key="STT_API_KEY" placeholder="API key">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Cloud STT Model</span>
+                            <input class="settings-input" type="text" data-key="STT_MODEL" placeholder="whisper-large-v3-turbo">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Text-to-Speech (TTS)</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Piper model (EN)</span>
+                            <input class="settings-input" type="text" data-key="PIPER_MODEL_EN" placeholder="~/.local/share/piper/en_US-lessac-medium.onnx">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Piper model (DE)</span>
+                            <input class="settings-input" type="text" data-key="PIPER_MODEL_DE" placeholder="~/.local/share/piper/de_DE-thorsten-medium.onnx">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Piper model (all languages)</span>
+                            <input class="settings-input" type="text" data-key="PIPER_MODEL" placeholder="Overrides EN/DE if set">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">HUD</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Style</span>
+                            <select class="settings-input settings-select" data-key="HUD_STYLE">
+                                <option value="">default</option>
+                                <option value="kompanion">kompanion</option>
+                                <option value="pill">pill</option>
+                                <option value="mini">mini</option>
+                            </select>
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Position</span>
+                            <select class="settings-input settings-select" data-key="HUD_POSITION">
+                                <option value="">default</option>
+                                <option value="bottom-right">bottom-right</option>
+                                <option value="bottom-left">bottom-left</option>
+                                <option value="bottom-center">bottom-center</option>
+                                <option value="top-right">top-right</option>
+                                <option value="top-left">top-left</option>
+                                <option value="top-center">top-center</option>
+                                <option value="center">center</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Integrations</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Spotify Client ID</span>
+                            <input class="settings-input" type="text" data-key="SPOTIFY_CLIENT_ID" placeholder="from developer.spotify.com">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Spotify Client Secret</span>
+                            <input class="settings-input" type="password" data-key="SPOTIFY_CLIENT_SECRET">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Google Client ID</span>
+                            <input class="settings-input" type="text" data-key="GOOGLE_CLIENT_ID" placeholder="from console.cloud.google.com">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Google Client Secret</span>
+                            <input class="settings-input" type="password" data-key="GOOGLE_CLIENT_SECRET">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Notes &amp; Vision</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Notes directory</span>
+                            <input class="settings-input" type="text" data-key="NOTES_DIR" placeholder="~/Notes">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Vision Base URL</span>
+                            <input class="settings-input" type="text" data-key="VISION_BASE_URL" placeholder="http://127.0.0.1:11434/v1">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Vision Model</span>
+                            <input class="settings-input" type="text" data-key="VISION_MODEL" placeholder="llava or qwen2.5-vl">
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Vision API Key</span>
+                            <input class="settings-input" type="password" data-key="VISION_API_KEY" placeholder="optional for local endpoints">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Wake Word</h3>
+                    <div class="settings-fields">
+                        <label class="settings-field">
+                            <span class="settings-label">Enabled</span>
+                            <select class="settings-input settings-select" data-key="WAKE_WORD_ENABLED">
+                                <option value="">disabled</option>
+                                <option value="1">enabled</option>
+                            </select>
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Model</span>
+                            <select class="settings-input settings-select" data-key="WAKE_WORD">
+                                <option value="">default</option>
+                                <option value="hey_jarvis_v0.1">hey_jarvis_v0.1</option>
+                                <option value="alexa_v0.1">alexa_v0.1</option>
+                                <option value="hey_mycroft_v0.1">hey_mycroft_v0.1</option>
+                            </select>
+                        </label>
+                        <label class="settings-field">
+                            <span class="settings-label">Threshold (0.0–1.0)</span>
+                            <input class="settings-input" type="text" data-key="WAKE_WORD_THRESHOLD" placeholder="0.60">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-footer">
+                    <button class="settings-save-btn" id="settings-save-btn">Save Settings</button>
+                    <span class="settings-save-status hidden" id="settings-save-status"></span>
+                </div>
+            </section>
+
             <footer class="launcher-footer">
                 <span class="shortcut-tip"><kbd>Enter</kbd> Run</span>
                 <span class="shortcut-tip"><kbd>↑</kbd> <kbd>↓</kbd> Browse history</span>
-                <span class="status-indicator"><span class="pulse-dot"></span> Server active</span>
+                <span class="status-indicator" id="runtime-status" data-runtime="local">
+                    <span class="pulse-dot" id="runtime-status-dot"></span>
+                    <span id="runtime-status-label">Local runtime</span>
+                </span>
             </footer>
         </main>
     </div>

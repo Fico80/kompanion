@@ -1,0 +1,60 @@
+@media (max-width: 640px) {
+    .app-container {
+        padding: 12px;
+    }
+
+    .launcher-header,
+    .tab-nav,
+    .launcher-content,
+    .launcher-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .input-wrapper {
+        gap: 10px;
+    }
+
+    #command-input {
+        font-size: 1rem;
+        min-width: 0;
+    }
+
+    .tab-nav,
+    .logs-actions {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .tab-nav::-webkit-scrollbar,
+    .logs-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-btn,
+    .logs-filter-btn,
+    .logs-clear-btn {
+        white-space: nowrap;
+    }
+
+    .quick-tiles {
+        grid-template-columns: 1fr;
+    }
+
+    .history-item,
+    .log-item {
+        grid-template-columns: 1fr;
+    }
+
+    .history-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .launcher-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+}

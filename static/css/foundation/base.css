@@ -1,0 +1,36 @@
+.hidden {
+    display: none !important;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    align-items: center;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    display: flex;
+    font-family: var(--font-body);
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+button {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+.history-item:focus-visible {
+    outline: 2px solid rgba(34, 211, 238, 0.75);
+    outline-offset: 3px;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}

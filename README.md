@@ -41,6 +41,7 @@ Most features work without an LLM through deterministic local parsers. Features 
 - ⚡ Translate, summarize, explain or improve clipboard text (requires LLM)
 
 **Configuration and shortcuts**
+- Configure LLM, STT, TTS and integrations through the web UI Settings tab
 - Save custom URL aliases and command shortcuts without restarting
 - Push-to-talk with the right Ctrl key
 - Optional wake word mode with openWakeWord, VAD and a small PyQt HUD
@@ -149,9 +150,11 @@ Open the web UI:
 http://127.0.0.1:8000
 ```
 
+The web UI has three tabs: **Commands** (quick tiles, suggestions, cheat sheet), **Logs** (full command history with filtering and delete), and **Settings** (configure LLM, STT, TTS, HUD, integrations and more without editing `.env` manually).
+
 ## Configuration
 
-Copy `.env.example` to `.env`. All available options are documented inline with examples and defaults.
+Copy `.env.example` to `.env` to get started. The **Settings tab** in the web UI covers the most common options (LLM, STT, TTS, HUD, integrations) without having to edit the file manually. Advanced options are documented inline in `.env.example`.
 
 For Spotify and Google Calendar, OAuth setup is required. Add the following redirect URIs to your developer app:
 
@@ -274,6 +277,21 @@ POST /api/execute
 Content-Type: application/json
 
 {"command": "open Firefox left"}
+```
+
+Logs endpoints:
+
+```text
+GET    /api/logs
+DELETE /api/logs
+DELETE /api/logs/{id}
+```
+
+Settings endpoints:
+
+```text
+GET  /api/settings
+POST /api/settings
 ```
 
 Memory endpoints:

@@ -6,7 +6,7 @@
 LLAMA_SERVER="${LLAMA_SERVER:-$HOME/llama.cpp/build/bin/llama-server}"
 MODEL="${LLAMA_MODEL:-$HOME/llama.cpp/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf}"
 PORT="${LLAMA_PORT:-8080}"
-CTX="${LLAMA_CTX:-4096}"
+CTX="${LLAMA_CTX:-8192}"
 GPU_LAYERS="${LLAMA_GPU_LAYERS:-99}"
 
 if [[ ! -f "$LLAMA_SERVER" ]]; then

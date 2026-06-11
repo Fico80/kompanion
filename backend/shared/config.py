@@ -3,6 +3,7 @@ import os
 import json
 from pathlib import Path
 from shared.paths import APPS_FILE, URLS_FILE
+from shared.numbers import NUMBER_PATTERN, parse_number
 
 _apps_cache: dict | None = None
 _apps_mtime: float = 0.0
@@ -82,10 +83,10 @@ def _extract_placement(text_lower: str) -> tuple:
 
     desktop = None
     dm = re.search(
-        r"\b(?:auf|an|zu|zur|in)?\s*(?:die|der)?\s*(arbeitsfläche|desktop|workspace|fläche)\s*(\d+)\b",
+        rf"\b(?:auf|an|zu|zur|in)?\s*(?:die|der)?\s*(arbeitsfläche|desktop|workspace|fläche)\s*({NUMBER_PATTERN})\b",
         text_lower,
     )
     if dm:
-        desktop = int(dm.group(2)) - 1
+        desktop = parse_number(dm.group(2)) - 1
 
     return layout, desktop, monitor

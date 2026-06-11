@@ -24,6 +24,8 @@ from capabilities.weather.parser import parse_weather_query
 from capabilities.windows.parser import (
     parse_close_app, parse_move_window, parse_active_window_context_move,
 )
+from capabilities.browser.parser import parse_browser
+from capabilities.screen.parser import parse_screen_vision
 
 # --- App / URL / Folder data ---
 
@@ -481,12 +483,22 @@ def parse_command(text: str) -> dict:
     if weather:
         return done(weather, "wetter")
 
-    # 11. File search
+    # 11. Browser
+    browser = parse_browser(text)
+    if browser:
+        return done(browser, "browser")
+
+    # 12. File search
     file_search = parse_file_search(text)
     if file_search:
         return done(file_search, "suche")
 
-    # 13. Move existing window
+    # 13. Screen vision
+    screen = parse_screen_vision(text)
+    if screen:
+        return done(screen, "screen")
+
+    # 14. Move existing window
     move = parse_move_window(text_lower, text)
     if move:
         return done(move, "move")

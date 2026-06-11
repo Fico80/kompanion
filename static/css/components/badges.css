@@ -1,0 +1,29 @@
+.history-status-badge {
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 8px;
+}
+
+.history-status-badge.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: var(--success-color);
+}
+
+.history-status-badge.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--error-color);
+}
+
+.stage-badge {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+    color: #818cf8;
+    font-family: monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 2px 7px;
+}

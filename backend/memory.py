@@ -192,6 +192,26 @@ def get_top_commands(limit: int = 10) -> list[dict]:
         ).fetchall()
     return [dict(r) for r in rows]
 
+def get_logs(limit: int = 200) -> list[dict]:
+    with _conn() as conn:
+        rows = conn.execute(
+            "SELECT id, ts, raw_text, action, stage, app_name, success FROM history ORDER BY ts DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+def delete_log(log_id: int) -> bool:
+    with _conn() as conn:
+        cur = conn.execute("DELETE FROM history WHERE id = ?", (log_id,))
+        conn.commit()
+    return cur.rowcount > 0
+
+def clear_logs() -> int:
+    with _conn() as conn:
+        cur = conn.execute("DELETE FROM history")
+        conn.commit()
+    return cur.rowcount
+
 def get_stats() -> dict:
     with _conn() as conn:
         total   = conn.execute("SELECT COUNT(*) FROM history").fetchone()[0]
@@ -375,16 +395,29 @@ def get_suggestions(min_count: int = 4, days: int = 30) -> list[dict]:
     cutoff = (datetime.now() - timedelta(days=days)).isoformat()
     with _conn() as conn:
         rows = conn.execute(
-            """SELECT raw_text AS command, action, app_name, target, COUNT(*) AS count
+            """SELECT raw_text AS command, action, app_name, target, COUNT(*) AS cnt
                FROM history
                WHERE success = 1 AND ts > ?
                GROUP BY LOWER(raw_text)
-               HAVING count >= ?
-               ORDER BY count DESC
-               LIMIT 8""",
-            (cutoff, min_count),
+               ORDER BY cnt DESC""",
+            (cutoff,),
         ).fetchall()
-    return [dict(r) for r in rows]
+
+    # Merge rows with the same app_name, keeping the most-used command variant
+    seen: dict[str, dict] = {}
+    for r in rows:
+        key = (r["app_name"] or r["command"] or "").lower()
+        if key not in seen:
+            seen[key] = {"command": r["command"], "action": r["action"],
+                         "app_name": r["app_name"], "target": r["target"],
+                         "count": r["cnt"]}
+        else:
+            seen[key]["count"] += r["cnt"]
+
+    return [
+        v for v in sorted(seen.values(), key=lambda x: x["count"], reverse=True)
+        if v["count"] >= min_count
+    ][:8]
 
 def _filter_existing(rows) -> list[dict]:
     return [dict(r) for r in rows if not r["path"] or os.path.exists(r["path"])]
