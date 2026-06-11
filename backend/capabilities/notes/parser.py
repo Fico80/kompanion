@@ -3,7 +3,9 @@ import re
 
 _NOTE_RE = re.compile(
     r"^(?:notiz|notiere|merke(?:\s+dir)?|schreib\s+auf"
-    r"|note|remember|write\s+down|jot\s+down|note\s+that|save\s+note)[:\s]+(.+)$",
+    r"|(?:mach[et]?|erstell[et]?|leg\s+an)\s+(?:eine?\s+)?(?:notiz|note)"
+    r"|(?:make|create|take|add)\s+a?\s+note"
+    r"|note|remember|write\s+down|jot\s+down|note\s+that|save\s+(?:a\s+)?note)[:\s]+(.+)$",
     re.IGNORECASE | re.DOTALL,
 )
 

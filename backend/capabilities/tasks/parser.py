@@ -23,6 +23,23 @@ _TASK_MONTHS = {
     "november": 11,
     "dezember": 12, "december": 12,
 }
+_TASK_NUMBER_WORDS = {
+    "ein": 1, "eine": 1, "einer": 1, "einen": 1, "eins": 1,
+    "zwei": 2, "drei": 3, "vier": 4, "fünf": 5, "funf": 5,
+    "sechs": 6, "sieben": 7, "acht": 8, "neun": 9, "zehn": 10,
+    "elf": 11, "zwölf": 12, "zwoelf": 12,
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "eleven": 11, "twelve": 12,
+}
+_TASK_NUMBER_PATTERN = r"\d+|" + "|".join(sorted(_TASK_NUMBER_WORDS, key=len, reverse=True))
+
+
+def _parse_task_number(value: str) -> int:
+    value = value.lower()
+    if value.isdigit():
+        return int(value)
+    return _TASK_NUMBER_WORDS[value]
 
 
 def _extract_due_date(text_lower: str):
@@ -42,9 +59,12 @@ def _extract_due_date(text_lower: str):
     if re.search(r"\btoday\b", text_lower):
         return today.isoformat(), "today"
 
-    m = re.search(r"\bin\s+(\d+)\s*(?:tag(?:en)?|days?)\b", text_lower)
+    m = re.search(rf"\bin\s+({_TASK_NUMBER_PATTERN})\s*(tag(?:en)?|days?|woche(?:n)?|weeks?)\b", text_lower)
     if m:
-        d = today + timedelta(days=int(m.group(1))); return d.isoformat(), f"in {m.group(1)} days"
+        amount = _parse_task_number(m.group(1))
+        unit = m.group(2)
+        days = amount * 7 if unit.startswith(("woche", "week")) else amount
+        d = today + timedelta(days=days); return d.isoformat(), f"in {m.group(1)} {unit}"
     if re.search(r"\bin\s+einer?\s+woche\b", text_lower):
         d = today + timedelta(days=7); return d.isoformat(), "in einer Woche"
     if re.search(r"\bin\s+(?:a\s+week|one\s+week)\b", text_lower):
@@ -86,7 +106,7 @@ def _clean_task_text(text_original: str) -> str:
     t = re.sub(r"\b(erinnere?\s+(?:mich|mir)|remind\s+me\s+(?:to)?)\b", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\b(daran|dran)\b", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\b(heute|morgen|übermorgen|today|tomorrow|day\s+after\s+tomorrow)\b", "", t, flags=re.IGNORECASE)
-    t = re.sub(r"\bin\s+\d+\s*(?:tag(?:en)?|days?)\b", "", t, flags=re.IGNORECASE)
+    t = re.sub(rf"\bin\s+(?:{_TASK_NUMBER_PATTERN})\s*(?:tag(?:en)?|days?|woche(?:n)?|weeks?)\b", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\bin\s+(?:einer?\s+woche|a\s+week|one\s+week)\b", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\b(nächste[rn]?\s+woche|next\s+week)\b", "", t, flags=re.IGNORECASE)
     t = re.sub(r"\b(?:(?:am|on|next)\s+)?(?:" + "|".join(_TASK_WEEKDAYS) + r")\b", "", t, flags=re.IGNORECASE)

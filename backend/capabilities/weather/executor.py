@@ -24,6 +24,8 @@ _WEATHER_DESC_DE = {
 
 
 def _day_label(day: str | None, response_lang: str) -> str:
+    if day == "day_after_tomorrow":
+        return "übermorgen" if response_lang == "de" else "the day after tomorrow"
     if day == "tomorrow":
         return "morgen" if response_lang == "de" else "tomorrow"
     return "heute" if response_lang == "de" else "today"
@@ -55,7 +57,8 @@ def query_weather(city: str | None, aspect: str | None = None,
         desc_raw = cur["weatherDesc"][0]["value"]
         desc = _WEATHER_DESC_DE.get(desc_raw, desc_raw) if response_lang == "de" else desc_raw
 
-        day_index = 1 if day == "tomorrow" and len(data.get("weather", [])) > 1 else 0
+        requested_day_index = 2 if day == "day_after_tomorrow" else 1 if day == "tomorrow" else 0
+        day_index = requested_day_index if len(data.get("weather", [])) > requested_day_index else 0
         forecast = data["weather"][day_index]
         t_min = forecast["mintempC"]
         t_max = forecast["maxtempC"]
@@ -67,7 +70,7 @@ def query_weather(city: str | None, aspect: str | None = None,
         area = data.get("nearest_area", [{}])[0]
         city_name = area.get("areaName", [{}])[0].get("value", location or ("Aktueller Standort" if response_lang == "de" else "Current location"))
 
-        if day == "tomorrow":
+        if day in ("tomorrow", "day_after_tomorrow"):
             if aspect == "temperature":
                 msg = f"{city_name}: {day_word} etwa {avg_temp}°C · {forecast_desc}" if response_lang == "de" else f"{city_name}: about {avg_temp}°C {day_word} · {forecast_desc}"
             elif aspect == "max_temp":

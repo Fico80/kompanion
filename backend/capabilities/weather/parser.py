@@ -2,7 +2,7 @@ import re
 
 
 def parse_weather_query(text_lower: str, text_original: str) -> dict | None:
-    primary = r"\b(wetter|weather|regen|regnen|regnet|regnerisch|schnee|sonnig|bewölkt|nebel|gewitter|forecast|vorhersage|klima)\b"
+    primary = r"\b(wetter|weather|regen|regnen|regnet|regnerisch|schnee|schneit|schnein|sonnig|bewölkt|nebel|gewitter|forecast|vorhersage|klima|wettervorhersage|wetterbericht|rain|snow|sunny|cloudy|foggy|stormy)\b"
     secondary = r"(temperatur|temperature|windstärke|windgeschwindigkeit|luftfeuchtigkeit|niederschlag)"
     standalone = r"\b(grad|celsius|fahrenheit|wind|warm|kalt|heiß|draußen)\b"
 
@@ -29,7 +29,12 @@ def parse_weather_query(text_lower: str, text_original: str) -> dict | None:
     elif re.search(r"\b(schnee|snow)\b", text_lower):
         aspect = "snow"
 
-    day = "tomorrow" if re.search(r"\b(morgen|tomorrow)\b", text_lower) else "today"
+    if re.search(r"\b(übermorgen|day\s+after\s+tomorrow)\b", text_lower):
+        day = "day_after_tomorrow"
+    elif re.search(r"\b(morgen|tomorrow)\b", text_lower):
+        day = "tomorrow"
+    else:
+        day = "today"
 
     city = None
     m = re.search(r"\b(?:in|für|at|for)\s+([A-ZÄÖÜ][a-zäöüß]+(?:\s[A-ZÄÖÜ][a-zäöüß]+)?)", text_original)

@@ -1,6 +1,7 @@
 import re
 from shared.config import _load_apps, _extract_placement
 from shared.i18n import detect_language
+from shared.numbers import NUMBER_PATTERN, parse_number
 
 
 def parse_close_app(text_lower: str) -> dict | None:
@@ -38,10 +39,10 @@ def parse_move_window(text_lower: str, text_original: str = "") -> dict | None:
     if not re.search(r"\b(verschieb[e]?|verschieben|schieb[e]?|beweg[e]?|bewegen|schick[e]?|schicken|move|send|push)\b", text_lower):
         return None
 
-    from_match = re.search(r"\b(von|from)\s+(?:arbeitsfläche|workspace|fläche|desktop)\s*(\d+)\b", text_lower)
-    from_desktop = int(from_match.group(2)) - 1 if from_match else None
+    from_match = re.search(rf"\b(von|from)\s+(?:arbeitsfläche|workspace|fläche|desktop)\s*({NUMBER_PATTERN})\b", text_lower)
+    from_desktop = parse_number(from_match.group(2)) - 1 if from_match else None
 
-    cleaned = re.sub(r"\b(von|from)\s+(?:arbeitsfläche|workspace|fläche|desktop)\s*\d+\b", "", text_lower).strip()
+    cleaned = re.sub(rf"\b(von|from)\s+(?:arbeitsfläche|workspace|fläche|desktop)\s*(?:{NUMBER_PATTERN})\b", "", text_lower).strip()
     layout, desktop, monitor = _extract_placement(cleaned)
 
     app_info = None

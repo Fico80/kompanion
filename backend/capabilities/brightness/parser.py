@@ -1,4 +1,5 @@
 import re
+from shared.numbers import NUMBER_PATTERN, parse_number
 
 
 def parse_brightness(text_lower: str) -> dict | None:
@@ -6,7 +7,7 @@ def parse_brightness(text_lower: str) -> dict | None:
         return None
 
     has_kw = re.search(r"\b(helligkeit|brightness|bildschirmhelligkeit|monitorhelligkeit|displayhelligkeit|bildschirm)\b", text_lower)
-    has_relative = re.search(r"\b(heller|brighter|dunkler|darker|brightness up|brightness down|erhöhe|reduziere|verringere)\b", text_lower)
+    has_relative = re.search(r"\b(heller|brighter|dunkler|darker|brightness up|brightness down|erhöhe[n]?|reduziere[n]?|verringere[n]?|erhöhen|reduzieren|verringern)\b", text_lower)
     has_standalone = re.search(r"\b(heller|dunkler)\b", text_lower) and not re.search(r"\b(monitor|display)\b", text_lower)
 
     if not (has_kw or has_relative or has_standalone):
@@ -18,10 +19,10 @@ def parse_brightness(text_lower: str) -> dict | None:
         monitor = 0 if monitor_match.group(1).startswith("link") or monitor_match.group(1) == "left" else 1
 
     label = "Bildschirmhelligkeit" if monitor is None else ("Linker Monitor" if monitor == 0 else "Rechter Monitor")
-    step_m = re.search(r"(\d{1,3})\s*(?:prozent|%)", text_lower)
-    step = max(1, min(int(step_m.group(1)), 100)) if step_m else 10
+    step_m = re.search(rf"\b({NUMBER_PATTERN})\s*(?:prozent|%)\b", text_lower)
+    step = max(1, min(parse_number(step_m.group(1)), 100)) if step_m else 10
 
-    if re.search(r"\b(heller|brighter|brightness up|erhöhe|erhoehe|rauf|mehr licht)\b", text_lower):
+    if re.search(r"\b(heller|brighter|brightness up|erhöhe[n]?|erhoehe[n]?|rauf|mehr licht)\b", text_lower):
         return {
             "action": "set_brightness",
             "target": f"+{step}%",
@@ -34,7 +35,7 @@ def parse_brightness(text_lower: str) -> dict | None:
             "monitor": monitor,
         }
 
-    if re.search(r"\b(dunkler|dünkler|darker|brightness down|reduziere|verringere|runter|weniger licht)\b", text_lower):
+    if re.search(r"\b(dunkler|dünkler|darker|brightness down|reduziere[n]?|verringere[n]?|verringern|runter|weniger licht)\b", text_lower):
         return {
             "action": "set_brightness",
             "target": f"-{step}%",
@@ -48,12 +49,12 @@ def parse_brightness(text_lower: str) -> dict | None:
         }
 
     val_m = (
-        re.search(r"\bauf\s+(\d{1,3})\b", text_lower)
-        or re.search(r"\b(\d{1,3})\s*(?:prozent|%)\b", text_lower)
-        or re.search(r"\b(\d{1,3})\b", text_lower)
+        re.search(rf"\bauf\s+({NUMBER_PATTERN})\b", text_lower)
+        or re.search(rf"\b({NUMBER_PATTERN})\s*(?:prozent|%)\b", text_lower)
+        or re.search(rf"\b({NUMBER_PATTERN})\b", text_lower)
     )
     if val_m and has_kw:
-        val = max(0, min(int(val_m.group(1)), 100))
+        val = max(0, min(parse_number(val_m.group(1)), 100))
         return {
             "action": "set_brightness",
             "target": f"{val}%",

@@ -1,6 +1,7 @@
 import re
 from datetime import datetime, timedelta, date as _date
 from shared.i18n import detect_language
+from shared.numbers import NUMBER_PATTERN, parse_number
 
 
 def parse_create_calendar(text_lower: str, text_original: str) -> dict | None:
@@ -89,24 +90,9 @@ def parse_create_calendar(text_lower: str, text_original: str) -> dict | None:
         }
 
     event_hour, event_min = None, 0
-    word_nums = {
-        "ein": 1, "one": 1,
-        "zwei": 2, "two": 2,
-        "drei": 3, "three": 3,
-        "vier": 4, "four": 4,
-        "fünf": 5, "five": 5,
-        "sechs": 6, "six": 6,
-        "sieben": 7, "seven": 7,
-        "acht": 8, "eight": 8,
-        "neun": 9, "nine": 9,
-        "zehn": 10, "ten": 10,
-        "elf": 11, "eleven": 11,
-        "zwölf": 12, "twelve": 12,
-    }
-    hm = re.search(r"\bhalb\s+(\d{1,2}|" + "|".join(word_nums) + r")\b", text_lower)
+    hm = re.search(rf"\bhalb\s+({NUMBER_PATTERN})\b", text_lower)
     if hm:
-        h_str = hm.group(1)
-        h = word_nums.get(h_str, int(h_str) if h_str.isdigit() else None)
+        h = parse_number(hm.group(1))
         if h:
             event_hour, event_min = h - 1, 30
     if event_hour is None:
@@ -114,11 +100,13 @@ def parse_create_calendar(text_lower: str, text_original: str) -> dict | None:
             re.search(r"\bum\s+(\d{1,2})\s+uhr\s+(\d{2})\b", text_lower)
             or re.search(r"\bum\s+(\d{1,2}):(\d{2})\b", text_lower)
             or re.search(r"\bum\s+(\d{1,2})\s*uhr\b", text_lower)
+            or re.search(rf"\bum\s+({NUMBER_PATTERN})\s*uhr\b", text_lower)
             or re.search(r"\bat\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b", text_lower)
+            or re.search(rf"\bat\s+({NUMBER_PATTERN})\s*(am|pm)?\b", text_lower)
             or re.search(r"\b(\d{1,2}):(\d{2})\s*(am|pm)?\b", text_lower)
         )
         if tm:
-            event_hour = int(tm.group(1))
+            event_hour = parse_number(tm.group(1))
             event_min = int(tm.group(2)) if tm.lastindex and tm.lastindex >= 2 and tm.group(2) and tm.group(2).isdigit() else 0
             meridiem = None
             if tm.lastindex:
@@ -149,7 +137,9 @@ def parse_create_calendar(text_lower: str, text_original: str) -> dict | None:
     name = re.sub(r"\b(termin[e]?|event|appointment|kalendereintrag|meeting|call)\b", "", name, flags=re.IGNORECASE)
     name = re.sub(
         r"\bum\s+\d{1,2}(?:(?:\s+uhr\s+|:)\d{2}|\s*uhr)?\b"
+        rf"|\bum\s+(?:{NUMBER_PATTERN})\s*uhr\b"
         r"|\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b"
+        rf"|\bat\s+(?:{NUMBER_PATTERN})\s*(?:am|pm)?\b"
         r"|\b\d{1,2}:\d{2}\s*(?:am|pm)?\b",
         "",
         name,
@@ -183,7 +173,8 @@ def parse_calendar_query(text_lower: str) -> dict | None:
 
     primary = r"\b(termin[e]?|kalender|calendar|events?|veranstaltung|appointment|meeting|schedule)\b"
     schedule_phrase = (
-        r"\bwas\b.{0,20}\b(ansteht|habe ich|steht an|plane ich|ist geplant|ist heute|ist morgen)\b"
+        r"\bwas\b.{0,30}\b(ansteht|habe ich|steht an|plane ich|ist geplant|ist heute|ist morgen)\b"
+        r"|\bwas\b.{0,10}\bsteht\b.{0,15}\ban\b"
         r"|\bwhat\b.{0,20}\b(do i have|is scheduled|is planned|is today|is tomorrow|coming up)\b"
     )
 

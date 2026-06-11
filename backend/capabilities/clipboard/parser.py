@@ -23,13 +23,40 @@ _CLIPBOARD_TASKS = [
     (re.compile(r"\brewrite\s+(?:this|it|the\s+text)\b", re.I), "improve"),
 ]
 
+_LANG_ALIASES = {
+    "englische": "Englisch",
+    "englisch": "Englisch",
+    "english": "English",
+    "deutsche": "Deutsch",
+    "deutsch": "Deutsch",
+    "german": "German",
+    "französische": "Französisch",
+    "franzoesische": "Französisch",
+    "französisch": "Französisch",
+    "franzoesisch": "Französisch",
+    "french": "French",
+    "spanische": "Spanisch",
+    "spanisch": "Spanisch",
+    "spanish": "Spanish",
+    "italienische": "Italienisch",
+    "italienisch": "Italienisch",
+    "italian": "Italian",
+}
+
+
+def _normalize_lang(value: str | None) -> str | None:
+    if not value:
+        return None
+    cleaned = value.strip(" .,!?:;").lower()
+    return _LANG_ALIASES.get(cleaned, value.strip())
+
 
 def parse_clipboard(text: str) -> dict | None:
     text_s = text.strip()
     for pattern, task in _CLIPBOARD_TASKS:
         m = pattern.search(text_s)
         if m:
-            lang = m.group(1).strip() if task == "translate_to" and m.lastindex >= 1 else None
+            lang = _normalize_lang(m.group(1)) if task == "translate_to" and m.lastindex >= 1 else None
             return {
                 "action": "clipboard_task",
                 "target": task,

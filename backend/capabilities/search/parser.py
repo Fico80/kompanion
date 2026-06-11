@@ -104,6 +104,11 @@ def parse_file_search(text: str) -> dict | None:
 
     raw = re.sub(r"\b(von|über|im|in|aus|auf|nach|der|die|das|mit|from|in|on|at|the|a|an|with)\b", "", raw, flags=re.I).strip(" ,.-")
 
+    # "show me" without any file/folder context → let browser handle it
+    if re.match(r"show\s+me\s+", text.strip(), re.IGNORECASE):
+        if file_patterns is None and search_type is None and search_dir == os.path.expanduser("~"):
+            return None
+
     return {
         "action": "search_files",
         "target": raw or None,
