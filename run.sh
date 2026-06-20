@@ -34,8 +34,8 @@ if [ "$REQ_HASH" != "$OLD_REQ_HASH" ]; then
     pip install --upgrade pip -q
     # openwakeword needs --no-deps: tflite-runtime is unavailable on Python 3.13+
     # We use the ONNX backend (onnxruntime) which is installed via requirements.txt
-    pip install openwakeword --no-deps -q
-    pip install -r requirements.txt -q
+    pip install openwakeword --no-deps --no-warn-conflicts -q
+    pip install -r requirements.txt --no-warn-conflicts -q
     printf "%s\n" "$REQ_HASH" > "$REQ_HASH_FILE"
 else
     echo "[*] Python dependencies unchanged."

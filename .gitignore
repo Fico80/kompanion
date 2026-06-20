@@ -6,6 +6,7 @@ config/apps.local.json
 *.sqlite
 *.sqlite3
 *.db
+models/openwakeword/
 
 # Python
 venv/

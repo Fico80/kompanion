@@ -1241,13 +1241,28 @@ class WakeWordThread(QThread):
 
         print(f"[WAKE] Loading wake-word model '{self.wake_word}'...")
         try:
-            import openwakeword as _oww_pkg
             from openwakeword.model import Model
-            _oww_dir = os.path.dirname(_oww_pkg.__file__)
-            _model_path = os.path.join(_oww_dir, "resources", "models", f"{self.wake_word}.onnx")
+            from openwakeword.utils import download_models
+
+            # Recent openWakeWord wheels do not bundle model assets. Keep the
+            # downloaded ONNX models outside the virtual environment so that
+            # rebuilding it (e.g. after a Python upgrade) does not lose them.
+            _project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            _models_dir = os.path.join(_project_dir, "models", "openwakeword")
+            _model_path = os.path.join(_models_dir, f"{self.wake_word}.onnx")
             if not os.path.exists(_model_path):
-                _model_path = self.wake_word  # allow absolute path as fallback
-            oww = Model(wakeword_model_paths=[_model_path])
+                if os.path.isabs(self.wake_word) and os.path.exists(self.wake_word):
+                    _model_path = self.wake_word
+                else:
+                    print(f"[WAKE] Downloading ONNX model assets to {_models_dir}...")
+                    download_models(model_names=[self.wake_word], target_directory=_models_dir)
+
+            oww = Model(
+                wakeword_models=[_model_path],
+                inference_framework="onnx",
+                melspec_model_path=os.path.join(_models_dir, "melspectrogram.onnx"),
+                embedding_model_path=os.path.join(_models_dir, "embedding_model.onnx"),
+            )
         except Exception as e:
             self.error_occurred.emit(f"openWakeWord could not be loaded: {e}")
             return

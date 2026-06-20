@@ -11,3 +11,8 @@ webrtcvad-wheels>=2.0.14
 numpy>=1.24.0
 onnxruntime>=1.14.0
 scipy>=1.10.0
+# openWakeWord is installed without its default dependencies because
+# tflite-runtime has no supported wheel for current Python versions.  Its
+# package import still loads the custom verifier module, which needs these.
+tqdm>=4.0
+scikit-learn>=1.0,<2
