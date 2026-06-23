@@ -53,6 +53,7 @@ _SEARCH_DIRS = {
     "musik":      os.path.expanduser("~/Music"),
     "music":      os.path.expanduser("~/Music"),
     "desktop":    os.path.expanduser("~/Desktop"),
+    "uni":        os.path.expanduser("~/UNI"),
     "notizen":    str(NOTES_DIR),
     "notes":      str(NOTES_DIR),
 }
@@ -102,7 +103,10 @@ def parse_file_search(text: str) -> dict | None:
                 file_patterns = ["*.md"]
             break
 
-    raw = re.sub(r"\b(von|über|im|in|aus|auf|nach|der|die|das|mit|from|in|on|at|the|a|an|with)\b", "", raw, flags=re.I).strip(" ,.-")
+    raw = re.sub(
+        r"\b(von|über|im|in|aus|auf|nach|der|die|das|den|dem|des|ein|eine|einen|einem|einer|mit|from|on|at|the|a|an|with)\b",
+        "", raw, flags=re.I,
+    ).strip(" ,.-")
 
     # "show me" without any file/folder context → let browser handle it
     if re.match(r"show\s+me\s+", text.strip(), re.IGNORECASE):

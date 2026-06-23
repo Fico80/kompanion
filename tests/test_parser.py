@@ -201,6 +201,11 @@ class TestPipelineStages(unittest.TestCase):
         self.assertStage("suche das PDF in Downloads", "search_files", "suche")
         self.assertStage("finde meine Urlaubsfotos", "search_files", "suche")
 
+    def test_open_named_folder_uses_live_folder_search(self):
+        res = self.assertStage("öffne den ordner lineare modelle 2", "search_files", "suche")
+        self.assertEqual(res["target"], "lineare modelle 2")
+        self.assertEqual(res["search_type"], "directory")
+
     def test_screen_vision(self):
         self.assertStage("was siehst du auf dem Bildschirm", "screen_query", "screen")
         self.assertStage("describe the screen", "screen_query", "screen")

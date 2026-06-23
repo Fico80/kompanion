@@ -307,7 +307,7 @@ def _parse_regex(text: str) -> dict:
     cleaned = re.sub(r"\b(öffne|öffnen|open|start|starte|starten|zeige?|show|mach|mache|run|execute|führe aus|navigiere|geh|gehe)\b", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\b(mir|mein|meine[nm]?|meines|bitte)\b", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\b(auf|on|am|an|im|den|dem|der|die|das|in|zu|zum|zur|nach|des|vom|von)\b", "", cleaned, flags=re.IGNORECASE)
-    cleaned = " ".join(cleaned.split()).strip()
+    cleaned = " ".join(cleaned.split()).strip(" ,.!?;:-")
     cleaned_lower = cleaned.lower()
 
     is_explicit_folder = False
@@ -340,8 +340,10 @@ def _parse_regex(text: str) -> dict:
                     "window_title": info["title"], "window_class": info["class"],
                     "flatpak_id": info.get("flatpak"), "_confident": True, **placement}
 
-    # Standard folder or explicit path prefix → confident match
-    if cleaned_lower in STANDARD_FOLDERS or is_explicit_folder or is_explicit_file or cleaned.startswith("/"):
+    # Standard folders and paths that exist directly in the home directory
+    # can be opened immediately. An explicit but unknown folder name falls
+    # through to the recursive folder search below.
+    if cleaned_lower in STANDARD_FOLDERS or cleaned.startswith(("/", "~")):
         raw = STANDARD_FOLDERS.get(cleaned_lower, cleaned)
         if not raw.startswith(("/", "~")):
             raw = f"~/{raw}"
@@ -349,6 +351,15 @@ def _parse_regex(text: str) -> dict:
         return {"action": "open_path", "target": path,
                 "app_name": "File Manager" if (os.path.isdir(path) or is_explicit_folder) else "File Viewer",
                 "window_title": os.path.basename(path) or "Dolphin",
+                "window_class": "dolphin", "flatpak_id": None, "_confident": True, **placement}
+
+    direct_home_path = os.path.abspath(os.path.expanduser(f"~/{cleaned}"))
+    if (is_explicit_folder and os.path.isdir(direct_home_path)) or (
+        is_explicit_file and os.path.isfile(direct_home_path)
+    ):
+        return {"action": "open_path", "target": direct_home_path,
+                "app_name": "File Manager" if is_explicit_folder else "File Viewer",
+                "window_title": os.path.basename(direct_home_path),
                 "window_class": "dolphin", "flatpak_id": None, "_confident": True, **placement}
 
     # Relative path that actually exists on disk → confident match
@@ -379,6 +390,23 @@ def _parse_regex(text: str) -> dict:
                     "_confident": True, **placement}
     except Exception:
         pass
+
+    # Only when the user explicitly said "Ordner"/"folder" (or "Datei"/"file")
+    # and the target wasn't a standard or directly-present folder do we search
+    # live across the home directory. This covers deeply nested, user-named
+    # folders such as "öffne den Ordner Lineare Modelle 2". A plain "öffne X"
+    # stays reserved for apps and falls through to the LLM below. The search
+    # executor handles multiple matches by asking which result to open.
+    if (is_explicit_folder or is_explicit_file) and cleaned:
+        return {
+            "action": "search_files", "target": cleaned,
+            "file_patterns": None, "time_filter": None,
+            "search_dir": HOME,
+            "search_type": "file" if is_explicit_file else "directory",
+            "app_name": "Dateisuche", "window_title": None,
+            "window_class": None, "flatpak_id": None,
+            "_confident": True, **placement,
+        }
 
     # Nothing matched — not confident, let LLM try
     return {"action": "unknown", "target": None, "app_name": None,

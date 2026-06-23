@@ -37,6 +37,13 @@ Most features work without an LLM through deterministic local parsers. Features 
 - Ask for system information: RAM, CPU, disk, battery, top processes
 - Query weather through `wttr.in`
 
+**Web and screen**
+- Open URLs and navigate to sites by voice: "go to github.com"
+- Web search by voice through DuckDuckGo (`ddgs`): "search for X online"
+- "show me X" finds the best matching page with a heuristic ranker and opens it directly
+- ⚡ Optional LLM ranking for "show me" results (`BROWSER_LLM_RANKING=1`)
+- ⚡ Ask about your screen: "what's on the screen?" captures a Wayland screenshot (`grim`) and answers via a vision LLM (requires a vision-capable model)
+
 **Clipboard**
 - ⚡ Translate, summarize, explain or improve clipboard text (requires LLM)
 
@@ -54,7 +61,7 @@ Python 3.10 or newer is required.
 Install the system dependencies on Fedora:
 
 ```bash
-sudo dnf install playerctl pipewire-utils qt6-qttools ddcutil ffmpeg espeak-ng lsof wl-clipboard libnotify
+sudo dnf install playerctl pipewire-utils qt6-qttools ddcutil ffmpeg espeak-ng lsof wl-clipboard libnotify grim
 ```
 
 `ffmpeg` includes `ffplay` which is used for TTS audio playback. On Fedora it requires [RPM Fusion](https://rpmfusion.org/).
@@ -234,6 +241,9 @@ create event dentist tomorrow at 3 pm
 remind me tomorrow to pay the bill
 summarize this
 find the PDF from last week
+search for wayland screen capture online
+show me the arch wiki
+what's on the screen?
 ```
 
 See `docs/COMMANDS.md` for a longer command list.
